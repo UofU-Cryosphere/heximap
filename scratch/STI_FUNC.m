@@ -1,16 +1,18 @@
 classdef STI_FUNC
     methods(Static)
         
-        function corners = GetCorners(im_dir, im_name)
+        function corners = GetCorners(sInfoL, sInfoR)
             
             % Define corner region subset size
             nrow = 5000;
             ncol = 5000;
             
-            % Define image halves
-            sInfoL = imfinfo(char(fullfile(im_dir, strcat(im_name, "_a.tif"))));
-            sInfoR = imfinfo(char(fullfile(im_dir, strcat(im_name, "_b.tif"))));
+%             % Define image halves
+%             sInfoL = imfinfo(char(fullfile(im_dir, strcat(im_name, "_a.tif"))));
+%             sInfoR = imfinfo(char(fullfile(im_dir, strcat(im_name, "_b.tif"))));
             
+            [~,fn] = fileparts(sInfoL.Filename);
+            im_name = fn(1:end-2);
             
             NW_region = imread(sInfoL.Filename,...
                 'PixelRegion',{[1 nrow] [1 ncol]});
