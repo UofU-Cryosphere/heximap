@@ -4,8 +4,8 @@
 addpath(genpath('~/Codebase/heximap'))
 % addpath(genpath('/uufs/chcpc.utah.edu/sys/srcdir/mexopencv/3.4.1-R2018a-nomkl'))
 % addpath(genpath('/uufs/chpc.utah.edu/sys/srcdir/mexopencv/3.4.1-R2018a-nomkl/opencv_contrib/'))
-addpath('/uufs/chpc.utah.edu/sys/srcdir/mexopencv/3.4.1-R2018a/')
-addpath('/uufs/chpc.utah.edu/sys/srcdir/mexopencv/3.4.1-R2018a/opencv_contrib/')
+addpath('/uufs/chpc.utah.edu/sys/srcdir/mexopencv/3.4.1-R2022a-nomkl/')
+addpath('/uufs/chpc.utah.edu/sys/srcdir/mexopencv/3.4.1-R2022a-nomkl/opencv_contrib/')
 
 % Define path to image directory and (stitched) image name
 im_dir = ['~/Documents/Research/GSLR/tutorial/npi/'...
