@@ -9,6 +9,11 @@ EXT_FUNC.ControlPoints(objM2, IM2_meta);
 
 % Sort the Hexagon images to establish left and right images when computing
 % stereo disparity maps
-[cHexFile,cM] = EXT_FUNC.SortImages(cHexFile,cM,hW);
+[vOrder] = EXT_FUNC.SortImages({objM1, objM2});
+
+% Compute fundamental matrix, relative pose matrices, and rough
+% homographies using full images. More accurate matrices are computed
+% later for each processing window.
+EXT_FUNC.InitTrans(cM,strHexPath);
 
 end
