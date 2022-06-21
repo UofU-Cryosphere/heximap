@@ -11,9 +11,13 @@ EXT_FUNC.ControlPoints(objM2, IM2_meta);
 % stereo disparity maps
 [vOrder] = EXT_FUNC.SortImages({objM1, objM2});
 
+% Define left-right ordering for image pair
+cM = {objM1, objM2};
+cM = cM(vOrder);
+
 % Compute fundamental matrix, relative pose matrices, and rough
 % homographies using full images. More accurate matrices are computed
 % later for each processing window.
-EXT_FUNC.InitTrans(cM,strHexPath);
+EXT_FUNC.InitTrans(cM);
 
 end

@@ -66,7 +66,7 @@ classdef EXT_FUNC
 
         end
 
-        function [] = InitTrans(cM, vOrder)
+        function [] = InitTrans(cM)
             % Find and match corresponding points (using ORB descriptors), use
             % these points to estimate the fundamental matrix (using 8-point
             % algorithm), use the fundamental and intrinsic matrices to compute the
@@ -79,8 +79,8 @@ classdef EXT_FUNC
             % correspondences during stereo rectification and bundle adjustment).
 
             % Get mat file objects
-            objML = cM{vOrder(1)};
-            objMR = cM{vOrder(2)};
+            objML = cM{1};
+            objMR = cM{2};
 
             % Find where images overlap
             vSz1 = size(objML,'Image') - 10;
@@ -113,7 +113,7 @@ classdef EXT_FUNC
             mWinR(mWinR > mB) = mB(mWinR > mB);
 
             % Compute point correspondences
-            [mPts1,mPts2] = EXT_FUNC.getPointCorrespondences(cM{1},cM{2},mWinL,mWinR);
+            [mPts1,mPts2] = EXT_FUNC.getPointCorrespondences(objML,objMR,mWinL,mWinR);
 
             % Initialize
             iNumTries = 50;
@@ -451,7 +451,7 @@ classdef EXT_FUNC
             end
 
             % Minimize cost function using nonlinear least-squares
-            vVar = lsqnonlin(@(x) optError(x,mK1,mK2,mPts1,mPts2,mBnd), ...
+            vVar = lsqnonlin(@(x) EXT_FUNC.optError(x,mK1,mK2,mPts1,mPts2,mBnd), ...
                 vVar,zeros(1,5),ones(1,5),sOpt);
 
             % Make optimized homography matrices
@@ -501,6 +501,42 @@ classdef EXT_FUNC
             mH1 = mK1 * (mR1 / mK1); mH1(1,3) = 0;
             mH2 = mK2 * (mR2 / mK2); mH2(1,3) = dX;
 
+        end
+        
+        function [mI1,mI2] = FilterImages(mI1,mI2,iE,sOpt)
+            % Match image histograms, apply locally adaptive contrast and noise
+            % filters
+
+            % Create masks for empty pixels
+            lM1 = mI1 ~= iE;
+            lM2 = mI2 ~= iE;
+
+            if sOpt.histmatch
+
+                % Match image histograms
+                mI2(lM2) = imhistmatch(mI2(lM2),mI1(lM1),256);
+
+            end
+
+            if sOpt.adapthisteq
+
+                % Apply locally adaptive histogram equalization
+                mI1 = adapthisteq(mI1,'ClipLimit',0.03,'NumTiles',[20 20]);
+                mI2 = adapthisteq(mI2,'ClipLimit',0.03,'NumTiles',[20 20]);
+
+            end
+
+            if sOpt.wiener2
+
+                % Apply noise removal filter
+                mI1 = wiener2(mI1,[3 3]);
+                mI2 = wiener2(mI2,[3 3]);
+
+            end
+
+            % Reassign empty pixels
+            mI1(~lM1) = iE;
+            mI2(~lM2) = iE;
         end
 
         function out = DefineRegion()
