@@ -539,12 +539,113 @@ classdef EXT_FUNC
             mI2(~lM2) = iE;
         end
 
-        function out = DefineRegion()
+        function [cWindow] = DefineRegions(cM, rgi_dat)
+
+            cWindow = {cM, rgi_dat};
 
 
         end
 
-        function out = DisparityLoop()
+        function [] = DisparityLoop(cM,strExPath,cWindow,strRes,iBlkSz)
+            % Rectify stereo images and compute disparity maps for each window
+
+%             % Warn user if files exist from a previous run
+%             cFileL = getFiles(strExPath,'Left.mat');
+%             cFileR = getFiles(strExPath,'Right.mat');
+%             if ~isempty(cFileL) || ~isempty(cFileR)
+%                 strQ = questdlg([ ...
+%                     'Existing ''Left.mat'' and ''Right.mat'' files ' ...
+%                     'in folder will cause errors. ' ...
+%                     'Please move them, then click continue.'], ...
+%                     '','Continue','Cancel','Cancel');
+%                 if ~strcmpi(strQ,'Continue')
+%                     error('Process cancelled by user.')
+%                 end
+%             end
+
+            % Initialize
+            iNumWin = numel(cWindow);
+
+            % Loop through each window
+            for iW = 1:iNumWin
+
+                try
+
+                    % Update command window
+                    disp(['processing window ' num2str(iW) '...'])
+
+                    % Delete old directory and make new one for saving data
+                    strSavePath = fullfile(strExPath, ...
+                        strcat("Win-", num2str(iW)));
+                    if exist(strSavePath,'dir')
+                        warning('off','MATLAB:RMDIR:RemovedFromPath');
+                        rmdir(strSavePath,'s');
+                        warning('on','MATLAB:RMDIR:RemovedFromPath');
+                    end
+                    mkdir(strSavePath)
+
+                    % Get full Hexagon image mat files
+                    objML = cM{1};
+                    objMR = cM{2};
+
+                    % Make mat file for left Hexagon window
+                    strFile = fullfile(strSavePath, 'Left.mat');
+                    objL = matfile(strFile,'Writable',true);
+
+                    % Make mat file for right Hexagon window
+                    strFile = fullfile(strSavePath, 'Right.mat');
+                    objR = matfile(strFile,'Writable',true);
+
+                    % Save camera matrices in new mat files
+                    objL.IntrinsicMatrix = objML.IntrinsicMatrix;
+                    objR.IntrinsicMatrix = objML.IntrinsicMatrix;
+                    objL.PoseMatrix = objML.LeftPoseMatrix;
+                    objR.PoseMatrix = objML.RightPoseMatrix;
+
+                    % Save source image info in mat files
+                    objL.SourceImageInfo = struct('Path',objML.Properties.Source, ...
+                        'SpatialTrans',objML.SpatialTrans);
+                    objL.SourceImage = objML.Image10;
+                    objR.SourceImageInfo = struct('Path',objMR.Properties.Source, ...
+                        'SpatialTrans',objMR.SpatialTrans);
+                    objR.SourceImage = objMR.Image10;
+
+                    % Save window and ROI info in mat files
+                    objL.Window = cWindow{iW}.left;
+                    objR.Window = cWindow{iW}.right;
+                    objL.WindowID = iW;
+                    objR.WindowID = iW;
+                    objL.RegionID = cWindow{iW}.region;
+                    objR.RegionID = cWindow{iW}.region;
+
+                    % Initialize
+%                     cWin = {num2str(iW) num2str(iNumWin)};
+                    objL.Accuracy = struct();
+
+                    % Read Hexagon images
+                    mWin = objL.Window;
+                    objL.Image = objML.Image(mWin(3):mWin(4),...
+                        mWin(1):mWin(2));
+                    mWin = objR.Window;
+                    objR.Image = objMR.Image(mWin(3):mWin(4),...
+                        mWin(1):mWin(2));
+
+                    % Rectify the stereo images
+                    extStereoRect(objL,objR,strSavePath);
+
+                    % Compute disparity map
+                    extDisparity(objL,objR,strRes,iBlkSz);
+
+                catch objExc
+
+                    warning(objExc.message)
+                    warning(['An error occurred during stereo rectification or ' ...
+                        'disparity map computation. Skipping window ' num2str(iW) '...'])
+                    objL.Error = objExc.message;
+                    objR.Error = objExc.message;
+
+                end
+            end
 
 
         end
