@@ -55,7 +55,7 @@ cWindow = {sWin1, sWin2, sWin3, sWin4};
 EXT_FUNC.DisparityLoop(cM,strExPath,cWindow,strRes,iBlkSz);
 
 % Refine camera orientations using bundle adjustment
-extBundleAdjustLoop(strExPath);
+EXT_FUNC.BundleAdjustLoop(strExPath);
 
 % Triangulate the points
 extTriangulateLoop(strExPath);
