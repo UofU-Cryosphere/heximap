@@ -1,0 +1,29 @@
+#!/bin/bash
+#SBATCH --time=06:00:00 # walltime, abbreviated by -t
+#SBATCH --nodes=1      # number of cluster nodes, abbreviated by -N
+#SBATCH -o slurm-%j.out-%N # name of the stdout, using the job number (%j) and the first node (%N)
+#SBATCH --ntasks=1    # number of MPI tasks, abbreviated by -n
+# #SBATCH --constraint="c20"
+#SBATCH --mem=256G
+# additional information for allocated clusters
+#SBATCH --account=rupper     # account - abbreviated by -A
+#SBATCH --partition=lonepeak  # partition, abbreviated by -p
+#SBATCH --mail-type=FAIL,BEGIN,END
+#SBATCH --mail-user=durban.keeler@gmail.com
+
+###### USER-DEFINED INPUTS ######
+# Define paths to source, data, and output directories
+SRCdir="/uufs/chpc.utah.edu/common/home/u1046484/Codebase/heximap/"
+DATdir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSRL/data/"
+OUTdir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSRL/outputs/"
+###### USER-DEFINED INPUTS ######
+
+# Purge old modules, load required modules, and activate conda env
+module purge
+module load gcc/8.5.0 matlab/R2022a opencv/3.4.1-mex-nomkl mexopencv/R2022a-nomkl
+module use $HOME/MyModules
+module load miniconda3/latest
+conda activate heximap
+
+# Run Python main script
+python chpc-main.py SRCdir DATdir OUTdir
