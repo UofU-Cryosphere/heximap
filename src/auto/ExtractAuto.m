@@ -1,8 +1,19 @@
 % Function to automatically extract DEM values from a pair of Hexagon
 % images.
 
-function [objDEM] = ExtractAuto(objM1, IM1_meta, objM2, IM2_meta, ...
+function [] = ExtractAuto(objM1, IM1_meta, objM2, IM2_meta, ROIs, ...
     strExportPath, strRes, iBlkSz)
+
+arguments
+    objM1
+    IM1_meta
+    objM2
+    IM2_meta
+    ROIs
+    strExportPath {mustBeTextScalar}
+    strRes {mustBeTextScalar} = '1/2';
+    iBlkSz {mustBeInteger} = 3;
+end
 
 % Define export directory (create if needed)
 strExPath = fullfile(strExportPath, "extraction/");
@@ -28,9 +39,9 @@ cM = cM(vOrder);
 EXT_FUNC.InitTrans(cM);
 
 % Define regions of interest within overlap between pairs
-% This will eventually subset to a Python-generated ROI based on glacier
+% This will eventually subset to Python-generated ROIs based on glacier
 % locations
-% % % cWindow = EXT_FUNC.DefineRegions(cM, rgi_dat);
+cWindows = EXT_FUNC.GetRegions(cM, ROIs);
 % Until that is implemented, here is a manually-curated variable for
 % development and testing (a 2x2 window region near the center)
 sWin1 = struct(...
@@ -51,15 +62,19 @@ sWin4 = struct(...
     'region', 1);
 cWindow = {sWin1, sWin2, sWin3, sWin4};
 
+tic
 % Rectify the stereo images, compute disparity maps
 EXT_FUNC.DisparityLoop(cM,strExPath,cWindow,strRes,iBlkSz);
+toc
 
+tic
 % Refine camera orientations using bundle adjustment
 EXT_FUNC.BundleAdjustLoop(strExPath);
+toc
 
+tic
 % Triangulate the points
-extTriangulateLoop(strExPath);
-
-
+EXT_FUNC.TriangulateLoop(strExPath);
+toc
 
 end

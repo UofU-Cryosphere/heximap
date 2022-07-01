@@ -539,9 +539,82 @@ classdef EXT_FUNC
             mI2(~lM2) = iE;
         end
 
-        function [cWindow] = DefineRegions(cM, rgi_dat)
+        function [cWindow] = GetRegions(cM, sROIs)
 
-            cWindow = {cM, rgi_dat};
+            % Get data from mat files
+            objML = cM{1};
+            objMR = cM{2};
+            mH1 = objML.LeftHomography;
+            mH2 = objML.RightHomography;
+            vSzL = fliplr(size(objML,'Image'));
+            vSzR = fliplr(size(objMR,'Image'));
+%             vSzLs = fliplr(size(objML,'Image10'));
+%             dScale = 10;
+            iR = 1;
+            iW = 1;
+            cWindow = {};
+
+            % Determine image overlap
+            mOver = mH1 \ mH2 * [1 1 1; 1 vSzR(2) 1]';
+            mOver = mOver ./ repmat(mOver(3,:),3,1);
+            mOver = mOver(1:2,:)';
+            mOver(:,1) = floor(min(mOver(:,1)));
+            mOver(3) = 1;
+            mOver(4) = vSzL(2);
+            
+            % Convert Python ROIs from lon/lat to image coordinates
+            [c_idx, r_idx] = transformPointsInverse(...
+                objML.SpatialTrans, sROIs.Region1(:,1), sROIs.Region1(:,2));
+            r_idx = -r_idx; %Need to negate row values
+
+            % Diagnostic plots
+%             [c_idx, r_idx] = transformPointsInverse(objML.SpatialTrans, ...
+%                 objML.CornerGCPs(:,1), objML.CornerGCPs(:,2));
+%             r_idx = -r_idx; %Need to negate row values
+            figure
+            imshow(objML.Image10)
+            hold on
+            plot(c_idx/10, r_idx/10, 'r+', 'MarkerSize',10)
+            hold off
+
+            % Still need to iterate through each ROI, clip ROIs only to
+            % region of overlap, grid the overlap region, determine which
+            % grids intersect ROIs, and ensure list of grid points is
+            % unique
+
+
+
+
+            
+
+            % Initialize
+            iWinSzPix = 4400;
+            iBuffPix = 300;
+
+            if strcmp(coverage, 'full')
+
+                % Define ROI (for left image)
+                mROI = round([...
+                    mOver(1)+iBuffPix, mOver(3)+iBuffPix; ...
+                    vSzL(1)-iBuffPix, vSzL(2)-iBuffPix]);
+
+                % Define window vectors
+                vRoiSz = fliplr(diff(mROI))+1;
+                vX = round(linspace(mROI(1),mROI(2),round(vRoiSz(2)/iWinSzPix)+1));
+                vY = round(linspace(mROI(3),mROI(4),round(vRoiSz(1)/iWinSzPix)+1));
+
+
+
+
+
+
+
+
+
+            end
+            
+
+            cWindow = {cM, coverage};
 
 
         end
@@ -735,7 +808,50 @@ classdef EXT_FUNC
 
         end
 
-        function out = TriangulateLoop()
+        function [] = TriangulateLoop(strHexPath)
+            % Triangulate points for each region
+
+            % Initialize
+            cFileL = cellfun(@(x) matfile(x,'Writable',true), ...
+                getFiles(strHexPath,'Left.mat'),'Uni',0);
+            cFileR = cellfun(@(x) matfile(x,'Writable',true), ...
+                getFiles(strHexPath,'Right.mat'),'Uni',0);
+            vROI = cell2mat(cellfun(@(x) x.RegionID,cFileL,'Uni',0));
+            vUniqueROI = unique(vROI);
+            iNumROI = length(vUniqueROI);
+
+            % Loop through each ROI
+            for iR = 1:iNumROI
+
+                try
+
+                    % Get windows belonging to current ROI
+                    [cL,cR] = extGetROI(cFileL,cFileR,vROI,vUniqueROI(iR));
+
+                    % Loop through windows belonging to current ROI
+                    for iW = 1:numel(cL)
+
+                        % Update command window
+                        disp(['triangulating points for region ' ...
+                            num2str(vUniqueROI(iR)) ' window ' num2str(iW) '...'])
+
+                        % Triangulate the points
+                        extTriangulate(cL{iW},cR{iW});
+
+                    end
+
+                catch objExc
+
+                    warning(objExc.message)
+                    warning(['An error occurred during triangulation. ' ...
+                        'Skipping region ' num2str(vUniqueROI(iR)) '...'])
+                    for iW = 1:numel(cL)
+                        cL{iW}.Error = objExc.message;
+                        cR{iW}.Error = objExc.message;
+                    end
+
+                end
+            end
 
 
         end
