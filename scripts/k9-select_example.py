@@ -6,12 +6,15 @@ import geopandas as gpd
 from pathlib import Path
 from shapely.geometry import Polygon
 
-# Define root and data directories
+# Define root, data, and scratch directories
 ROOT_DIR = Path().absolute().parents[0]
 DATA_DIR = Path('/home/durbank/Documents/Research/Glaciers/GSLR/data')
-print(DATA_DIR)
+SCRATCH_DIR = ROOT_DIR.joinpath('scratch')
+# If nescessary, create scratch directory
+SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
 
-# Load custom module
+
+# Load custom modules
 import sys
 sys.path.append(ROOT_DIR.joinpath('src').as_posix())
 import pyHEX
@@ -20,9 +23,9 @@ import pyHEX
 
 # hex metadata filenames
 hex2 = gpd.read_file(DATA_DIR.joinpath(
-    "declass-ii/declassii_620eb22e9f76579.shp"))
+    "hexagon/declass-ii/metadata/declassii_620eb22e9f76579.shp"))
 hex3 = gpd.read_file(DATA_DIR.joinpath(
-    "declass-iii/declassiii_620ec4d67f3bf101.shp"))
+    "hexagon/declass-iii/metadata/declassiii_620ec4d67f3bf101.shp"))
 
 # Load glacier outlines
 RGI_files = list(DATA_DIR.joinpath("RGI-data").glob("*/*.shp"))
@@ -62,25 +65,54 @@ hex3_subset = hex3.loc[set_idx]
 # %%
 hex2, hex2_pairs = pyHEX.pairify(hex2_subset)
 pairs2 = hex2_pairs.loc[
-    (hex2_pairs['fArea']>0.1) & (hex2_pairs['Download Count']==2)]
+    (hex2_pairs['fArea']>0.33) & (hex2_pairs['Download Count']==2)]
 
 # hex3, hex3_pairs = pyHEX.pairify(hex3_subset, hex_class=3)
 # pairs3 = hex3_pairs.loc[
-#     (hex3_pairs['fArea']>0.1) & (hex3_pairs['Download Count']==2)]
+#     (hex3_pairs['fArea']>0.33) & (hex3_pairs['Download Count']==2)]
 
 pairs2 = pyHEX.find_glaciers(pairs2, RGI_test)
 
-# %% Save metadata for tutorial images
-
+# %% Development
 pair_idx = 38
+pair_i = pairs2.loc[[pair_idx]]
+pair_glaciers = RGI_test.loc[pair_i['glacier_idx'].iloc[0]]
 
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(figsize=(5,10))
+hex2.loc[[pair_i['Indices'].iloc[0][0]]].plot(ax=ax, alpha=0.5, color='blue')
+hex2.loc[[pair_i['Indices'].iloc[0][1]]].plot(ax=ax, alpha=0.5, color='red')
+pair_i.plot(ax=ax, color='purple')
+pair_glaciers.plot(ax=ax, color='cyan')
+
+# Get bounds of glaciated regions within hex pair
+ROIs = pyHEX.pairROIs(pair_glaciers)
+
+# fig, ax = plt.subplots(figsize=(5,10))
+# hex2.loc[[pair_i['Indices'].iloc[0][0]]].plot(ax=ax, alpha=0.25, color='grey')
+# hex2.loc[[pair_i['Indices'].iloc[0][1]]].plot(ax=ax, alpha=0.25, color='grey')
+# pair_i.plot(ax=ax, color='grey', alpha=0.25)
+# ROIs.plot(ax=ax, alpha=0.5, cmap='Set1')
+# pair_glaciers.plot(ax=ax, color='cyan')
+
+ROI_set = ROIs.iloc[[0,2,3,7]]
+
+fig, ax = plt.subplots(figsize=(5,10))
+hex2.loc[[pair_i['Indices'].iloc[0][0]]].plot(ax=ax, alpha=0.25, color='grey')
+hex2.loc[[pair_i['Indices'].iloc[0][1]]].plot(ax=ax, alpha=0.25, color='grey')
+pair_i.plot(ax=ax, color='grey', alpha=0.25)
+ROI_set.plot(ax=ax, alpha=0.5, cmap='Set1')
+pair_glaciers.plot(ax=ax, color='cyan')
+
+# %% 
+
+# Save ROI data for tutorial images
+pyHEX.SaveROIs(ROI_set, SavePath=ROOT_DIR.joinpath('data/tmp'))
+
+# Save image metadata for tutorial images
 pyHEX.save_asmat(
     hex2, pairs2.loc[pair_idx,'Indices'], 
     exp_path=ROOT_DIR.joinpath('data/tmp'))
-
-# Get total bounds of glaciated regions within hex pair
-glacier_poly = RGI_test.loc[
-    pairs2.loc[pair_idx, 'glacier_idx']].unary_union.convex_hull
 
 # %%[markdown]
 # 
