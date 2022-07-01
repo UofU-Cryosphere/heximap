@@ -1,13 +1,20 @@
-function [] = extTriangulate(objL,objR,hW,cReg)
+function [] = extTriangulate(objL,objR,varargin)
 %Triangulate points in 3D space, use block processing to conserve memory
 
-%Update waitbar
-try
-set(get(findobj(hW,'type','axes'),'title'), 'string', ...
-    ['region ' cReg{1} ' of ' cReg{2} ': triangulating points...'])
-pause(0.1)
-catch
+% Define whether to run manual or automated based on num of arguments
+if nargin > 2
+    hW = varargin{1};
+    cReg = varargin{2};
+
+    %Update waitbar
+    try
+        set(get(findobj(hW,'type','axes'),'title'), 'string', ...
+            ['region ' cReg{1} ' of ' cReg{2} ': triangulating points...'])
+        pause(0.1)
+    catch
+    end
 end
+
 
 %Define blocks
 vSz = size(objL,'ImagePoints');
