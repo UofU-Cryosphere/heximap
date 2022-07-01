@@ -1,12 +1,18 @@
-function [] = extDisparity(objL,objR,strRes,iBlkSz,hW,cWin)
+function [] = extDisparity(objL,objR,strRes,iBlkSz, varargin)
 % Compute disparity maps
 
-% Update waitbar
-try
-set(get(findobj(hW,'type','axes'),'title'), 'string', ...
-    ['window ' cWin{1} ' of ' cWin{2} ': computing disparity map...'])
-pause(0.1)
-catch
+% Define whether to run manual or automated based on num of arguments
+if nargin > 4
+    hW = varargin{1};
+    cWin = varargin{2};
+
+    % Update waitbar
+    try
+        set(get(findobj(hW,'type','axes'),'title'), 'string', ...
+            ['window ' cWin{1} ' of ' cWin{2} ': computing disparity map...'])
+        pause(0.1)
+    catch
+    end
 end
 
 % Filter images
