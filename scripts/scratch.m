@@ -19,7 +19,7 @@ IM2_name = 'DZB1212-500105L006001';
 GeorefPath = '';
 
 % Define path of directory to save interim results (create dir if needed)
-ScratchPath = '~/Documents/Research/GSLR/data/interim/';
+ScratchPath = '~/Codebase/heximap/scratch/';
 if ~isfolder(ScratchPath)
     mkdir(ScratchPath)
 end
@@ -34,6 +34,8 @@ end
 % defined outside the function and the defaults overridden)
 strRes = '1/2'; %Desired image resolution for stereo matching
 iBlkSz = 3; %The block size (in pixels) used for matching in disparity mapping (should be odd 3-11)
+
+verbose = false; %Should iterim data be kept after processing?
 %%%%%% USER-DEFINED INPUTS %%%%%%
 
 
@@ -67,6 +69,10 @@ IM2_meta = load(fullfile(ScratchPath, "metadata", ...
 % IM1_meta = load(fullfile("data/tmp/", strcat(IM1_name, "_meta.mat")));
 % IM2_meta = load(fullfile("data/tmp/", strcat(IM2_name, "_meta.mat")));
 
+% Load ROI locations from Python-generated file
+ROIs = load(fullfile(ScratchPath, "hexROIs.mat"));
+
 % Extract DEM for overlap between hexagon pair
-objDEM = ExtractAuto(objIM1, IM1_meta, objIM2, IM2_meta, ScratchPath,...
-    strRes, iBlkSz);
+ExtractAuto(objIM1, IM1_meta, objIM2, IM2_meta, ROIs, ScratchPath);
+% ExtractAuto(objIM1, IM1_meta, objIM2, IM2_meta, ScratchPath,...
+%     strRes, iBlkSz);
