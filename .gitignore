@@ -1,4 +1,8 @@
+# Ignore mexopencv directory included in repo
 mexopencv-master/*
+
+# Ignore scratch processing directory
+scratch/*
 
 ## Python-specific ignore rules (taken from 
 ## [Github](https://github.com/github/gitignore/blob/main/Python.gitignore))
