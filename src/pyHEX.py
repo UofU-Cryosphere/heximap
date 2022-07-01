@@ -198,7 +198,7 @@ def SaveROIs(ROI_gdf, SavePath):
     ROI_dict = dict(zip(roi_keys, ROI_gdf['Coords'].to_list()))
 
     # Save dictionary
-    scipy.io.savemat(SavePath.joinpath('hexROIs.mat'), ROI_dict)
+    scipy.io.savemat(SavePath, ROI_dict)
 
 # Function to save hexagon image pair metadata to matlab file
 def save_asmat(hex_gdf, pair_idx, exp_path):
