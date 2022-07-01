@@ -1,9 +1,10 @@
 
 # Module imports
+import numpy as np
 import pandas as pd
 import geopandas as gpd
+from shapely.geometry import Polygon
 import warnings
-import numpy as np
 import scipy.io
 
 
@@ -122,18 +123,6 @@ def pairify(hex_gdf, hex_class=2):
 
     return (hex, pairs_gdf)
 
-# Function to save hexagon image pair metadata to matlab file
-def save_asmat(hex_gdf, pair_idx, exp_path):
-    hex = hex_gdf.loc[pair_idx]
-    IM1 = hex.iloc[0]
-    IM1.index = IM1.index.str.replace(' ', '_')
-    IM2 = hex.iloc[1]
-    IM2.index = IM2.index.str.replace(' ', '_')
-    scipy.io.savemat(
-        exp_path.joinpath((IM1['Entity_ID']+'_meta.mat')), IM1.to_dict())
-    scipy.io.savemat(
-        exp_path.joinpath((IM2['Entity_ID']+'_meta.mat')), IM2.to_dict())
-
 # Function to find glaciers within overlap region of hexagon pairs
 def find_glaciers(pair_gdf, glacier_gdf, buffer_sz=10000):
 
@@ -148,10 +137,77 @@ def find_glaciers(pair_gdf, glacier_gdf, buffer_sz=10000):
     glacier_buff = glacier_reproj.centroid.buffer(buffer_sz)
 
     glacier_idx = []
+    glacier_area = []
     for idx, row in pair_reproj.iterrows():
         in_idx = glacier_buff.within(row['geometry'])
         glacier_idx.append(glacier_buff.index[in_idx].to_list())
+        glacier_area.append(glacier_reproj.loc[in_idx,'Area'].sum())
     pair_gdf['glacier_idx'] = glacier_idx
+    pair_gdf['TotGlacArea'] = glacier_area
     pair_gdf['Num_glaciers'] = pair_gdf['glacier_idx'].map(lambda x: len(x))
 
     return pair_gdf
+
+# Function to extract regions of interest for heximap processing for the glaciers contained in a given hex pair
+def pairROIs(glacier_gdf, buff_sz=5000):
+    # Get original crs
+    crs0 = glacier_gdf.crs
+
+    # Copy and reproject data to Equal Earth (improves geometry calculations)
+    data = glacier_gdf.copy().to_crs(epsg=8857)
+
+    # Add buffer to glacier geometries (ensures clean overlap of nearby glaciers)
+    dat_buff = data.buffer(buff_sz)
+
+    # Dissolve overlapping glaciers into new geometries
+    ROI_poly = gpd.GeoDataFrame(geometry=[dat_buff.unary_union]).explode(
+        index_parts=False).reset_index(drop=True)
+    
+    # Get bounding boxes of ROIs (and add buffer to each side)
+    bbox_vals = ROI_poly.geometry.bounds
+    bbox_poly = []
+    for _,box in bbox_vals.iterrows():
+        x_list = [
+            box.minx-buff_sz, box.maxx+buff_sz, 
+            box.maxx+buff_sz, box.minx-buff_sz]
+        y_list = [
+            box.miny-buff_sz, box.miny-buff_sz, 
+            box.maxy+buff_sz, box.maxy+buff_sz]
+        bbox_poly.append(Polygon(zip(x_list, y_list)))
+    ROIs = gpd.GeoDataFrame(geometry=bbox_poly, crs=data.crs)
+
+    # Reproject to original crs
+    ROIs = ROIs.to_crs(crs0)
+
+    # Extract exterior points for each ROI and to gdf
+    coords = []
+    for _,row in ROIs.iterrows():
+        coords.append(list(row.geometry.exterior.coords))
+    ROIs['Coords'] = coords
+
+    return ROIs
+
+# Function to save ROI points for later loading to matlab
+def SaveROIs(ROI_gdf, SavePath):
+    # Get name keys for struct
+    roi_keys = [
+        ('Region' + x) for x in 
+        [str(x) for x in (np.arange(ROI_gdf.shape[0])+1)]
+        ]
+    # Construct dictionary
+    ROI_dict = dict(zip(roi_keys, ROI_gdf['Coords'].to_list()))
+
+    # Save dictionary
+    scipy.io.savemat(SavePath.joinpath('hexROIs.mat'), ROI_dict)
+
+# Function to save hexagon image pair metadata to matlab file
+def save_asmat(hex_gdf, pair_idx, exp_path):
+    hex = hex_gdf.loc[pair_idx]
+    IM1 = hex.iloc[0]
+    IM1.index = IM1.index.str.replace(' ', '_')
+    IM2 = hex.iloc[1]
+    IM2.index = IM2.index.str.replace(' ', '_')
+    scipy.io.savemat(
+        exp_path.joinpath((IM1['Entity_ID']+'_meta.mat')), IM1.to_dict())
+    scipy.io.savemat(
+        exp_path.joinpath((IM2['Entity_ID']+'_meta.mat')), IM2.to_dict())
