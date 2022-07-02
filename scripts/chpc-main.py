@@ -3,6 +3,7 @@ import geopandas as gpd
 from pathlib import Path
 from shapely.geometry import Polygon
 import sys
+# import matlab.engine
 
 # Get bash inputs to define src, data, and output directories
 SRC_DIR = Path(sys.argv[1])
@@ -59,3 +60,10 @@ pyHEX.SaveROIs(ROI_set, SavePath=SCRATCH_DIR.joinpath('hexROIs.mat'))
 # Save image metadata for tutorial images
 pyHEX.save_asmat(
     hex2, pairs2.loc[pair_idx,'Indices'], exp_path=SCRATCH_DIR)
+
+
+
+
+# # Call matlab script of heximap processes
+# eng = matlab.engine.start_matlab()
+# eng.triarea(nargout=0)
