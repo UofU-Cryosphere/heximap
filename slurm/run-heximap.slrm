@@ -14,8 +14,9 @@
 ###### USER-DEFINED INPUTS ######
 # Define paths to source, data, and output directories
 SRCdir="/uufs/chpc.utah.edu/common/home/u1046484/Codebase/heximap/"
-DATdir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSRL/data/"
-OUTdir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSRL/outputs/"
+DATdir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSLR/data/"
+OUTdir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSLR/outputs/"
+SCRIPTpath=$SRCdir/"scripts/chpc-main.py"
 ###### USER-DEFINED INPUTS ######
 
 # Purge old modules, load required modules, and activate conda env
@@ -26,4 +27,4 @@ module load miniconda3/latest
 conda activate heximap
 
 # Run Python main script
-python chpc-main.py SRCdir DATdir OUTdir
+python $SCRIPTpath $SRCdir $DATdir $OUTdir

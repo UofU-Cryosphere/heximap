@@ -5,9 +5,9 @@ from shapely.geometry import Polygon
 import sys
 
 # Get bash inputs to define src, data, and output directories
-SRC_DIR = Path(sys.argv[0])
-DATA_DIR = Path(sys.argv[1])
-OUT_DIR = Path(sys.argv[2])
+SRC_DIR = Path(sys.argv[1])
+DATA_DIR = Path(sys.argv[2])
+OUT_DIR = Path(sys.argv[3])
 
 # Define and (if needed) create scratch processing directory
 SCRATCH_DIR = SRC_DIR.joinpath('scratch')
