@@ -15,14 +15,14 @@
 # Define paths to source, data, and output directories
 StartDir=$(pwd)
 HexDir="/uufs/chpc.utah.edu/common/home/u1046484/Codebase/heximap/"
-SourceDir=$HexDir/"src/"
+SourceDir=$HexDir"src/"
 ScratchDir="/scratch/general/vast/u1046484/heximap/"
 DataDir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSLR/data/"
-ImageDir=$DataDir/"hexagon/declass-ii/imagery/"
-GeoRefPath=$DataDir/"refDEM/"
+ImageDir=$DataDir"hexagon/declass-ii/imagery/"
+GeoRefPath=$DataDir"refDEM/"
 OutDir=StartDir/"outputs/"
-PyScriptPath=$SourceDir/"scripts/chpc-main.py"
-MatScriptPath = $SourceDir/"scripts/HPC_HEX.m"
+PyScriptPath=$HexDir"scripts/chpc-main.py"
+MatScriptPath=$HexDir"scripts/HPC_HEX.m"
 ###### USER-DEFINED INPUTS ######
 
 # Purge old modules, load required modules, and activate conda env
@@ -39,7 +39,17 @@ cp $MatScriptPath $ScratchDir
 cd $ScratchDir
 
 # Run Python main script
-python $ScriptPath $SourceDir $DataDir $ImageDir $OutDir
+python chpc-main.py $SourceDir $DataDir $ImageDir $OutDir
 
 # Run MATLAB main script
-matlab -nodisplay -batch 'try; HPC_HEX.m; catch; end'
+#matlab -nodisplay -batch 'try; HPC_HEX.m; catch; end'
+
+
+
+
+# Diagnostics for development
+echo $StartDir
+echo $(pwd)
+echo $SourceDir
+echo $PyScriptPath
+echo $OutDir
