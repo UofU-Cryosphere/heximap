@@ -16,6 +16,9 @@ Do this by navigating to the heximap root directory (the root of the repository 
 conda env create -f environment.yml
 ```
 This will install all the necessary Python modules/versions to run `heximap` and will install them into a conda environment of the same name.
+To complete the conda environment setup, you will also need to install the MATLAB Python engine to your environment.
+Instructions for how to do this are found in [this answer](https://www.mathworks.com/matlabcentral/answers/346068-how-do-i-properly-install-matlab-engine-using-the-anaconda-package-manager-for-python).
+Just make sure that you run the commands from within the `heximap` environment (e.g. run `conda activate heximap` prior to running the steps in that answer).
 
 You will then need to edit two scripts for your particular use case, `run-heximap.slrm` and `chpc-main.py`.
 Modify the `#SBATCH` lines of `run-heximap.slrm` to match your needs for your specific processing task (e.g. account name, nodes to use, walltime, etc.).
