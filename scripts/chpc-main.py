@@ -5,19 +5,29 @@ from shapely.geometry import Polygon
 import sys
 
 # Define root directory
-ROOT_DIR = Path()
+ROOT_DIR = Path().absolute()
 
 # Get bash inputs to define src, data, image, and output directories
 SRC_DIR = Path(sys.argv[1])
 DATA_DIR = Path(sys.argv[2])
 IM_DIR = Path(sys.argv[3])
 OUT_DIR = Path(sys.argv[4])
-# SRC_DIR = ROOT_DIR.absolute().parent.joinpath('src/')
+# ROOT_DIR = Path('/home/durbank/scratch/heximap/')
+# SRC_DIR = Path('/home/durbank/Documents/Research/Glaciers/heximap/src/')
 # DATA_DIR = Path('/home/durbank/Documents/Research/Glaciers/GSLR/data/')
+# IM_DIR = Path('/home/durbank/Documents/Research/Glaciers/GSLR/data/hexagon/declass-ii/imagery/')
+# OUT_DIR = Path('home/durbank/Documents/Research/Glaciers/GSLR/scratch/outputs/')
 
 # Define and (if needed) create tmp processing directory
-TMP_DIR = ROOT_DIR.absolute().joinpath('tmp')
+TMP_DIR = ROOT_DIR.joinpath('tmp')
 TMP_DIR.mkdir(parents=True, exist_ok=True)
+
+print("Here's the Python output print statements...")
+print(SRC_DIR)
+print(DATA_DIR)
+print(IM_DIR)
+print(OUT_DIR)
+print(TMP_DIR)
 
 # Load custom modules
 sys.path.append(SRC_DIR.as_posix())
@@ -60,14 +70,15 @@ ROIs = pyHEX.pairROIs(pair_glaciers)
 ROI_set = ROIs.iloc[[0,2,3,7]]
 
 # Save ROI data for tutorial images
-pyHEX.SaveROIs(ROI_set, SavePath=TMP_DIR.joinpath('hexROIs.mat'))
+pyHEX.SaveROIs(ROI_set, SavePath=TMP_DIR)
 
 # Save image metadata for tutorial images
 pyHEX.hex_asmat(
-    hex2, pairs2.loc[pair_idx,'Indices'], exp_path=TMP_DIR)
+    hex2, pairs2.loc[pair_idx,'Indices'], 
+    exp_path=TMP_DIR.joinpath('metadata'))
 
 # Export MATLAB param file for later use
 pyHEX.param_asmat(
     root=ROOT_DIR, source=SRC_DIR, image=IM_DIR, 
     IM1_name=pair_i.IDs.iloc[0][0], IM2_name=pair_i.IDs.iloc[0][1], 
-    georef=DATA_DIR, OutPath=TMP_DIR.joinpath('sParams.mat'))
+    georef=DATA_DIR, OutDir=TMP_DIR)

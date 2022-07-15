@@ -189,7 +189,10 @@ def pairROIs(glacier_gdf, buff_sz=5000):
     return ROIs
 
 # Function to save ROI points for later loading to matlab
-def SaveROIs(ROI_gdf, SavePath):
+def SaveROIs(ROI_gdf, SavePath, FileName='hexROIs.mat'):
+    # If necessary, create output directory
+    SavePath.mkdir(parents=True, exist_ok=True)
+
     # Get name keys for struct
     roi_keys = [
         ('Region' + x) for x in 
@@ -199,10 +202,13 @@ def SaveROIs(ROI_gdf, SavePath):
     ROI_dict = dict(zip(roi_keys, ROI_gdf['Coords'].to_list()))
 
     # Save dictionary
-    scipy.io.savemat(SavePath, ROI_dict)
+    scipy.io.savemat(SavePath.joinpath(FileName), ROI_dict)
 
 # Function to save hexagon image pair metadata to matlab file
 def hex_asmat(hex_gdf, pair_idx, exp_path):
+    # If necessary, create output directory
+    exp_path.mkdir(parents=True, exist_ok=True)
+
     hex = hex_gdf.loc[pair_idx]
     IM1 = hex.iloc[0]
     IM1.index = IM1.index.str.replace(' ', '_')
@@ -216,13 +222,16 @@ def hex_asmat(hex_gdf, pair_idx, exp_path):
 # Function to save heximap parameters as matlab structure for later import
 def param_asmat(
     root, source, image, IM1_name, IM2_name, georef, 
-    OutPath=Path('tmp/sParams.mat')):
+    OutDir=Path('tmp/'), FileName="sParams.mat"):
     
+    # If necessary, create output directory
+    OutDir.mkdir(parents=True, exist_ok=True)
+
     param_dict = {
         'strRootPath':root.absolute().as_posix(), 
         'strSourcePath':source.absolute().as_posix(), 
         'strImageDir':image.absolute().as_posix(), 
-        'strIM1Name':str(IM1_name), 'strIM2Name':str(IM2_name), 
-        'strGeoRefPath':georef}
+        'strIM1Name':IM1_name, 'strIM2Name':IM2_name, 
+        'strGeoRefPath':georef.absolute().as_posix()}
     
-    scipy.io.savemat(OutPath, param_dict)
+    scipy.io.savemat(OutDir.joinpath(FileName), param_dict)

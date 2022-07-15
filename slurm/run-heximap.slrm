@@ -20,7 +20,7 @@ ScratchDir="/scratch/general/vast/u1046484/heximap/"
 DataDir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSLR/data/"
 ImageDir=$DataDir"hexagon/declass-ii/imagery/"
 GeoRefPath=$DataDir"refDEM/"
-OutDir=StartDir/"outputs/"
+OutDir=$StartDir/"outputs/"
 PyScriptPath=$HexDir"scripts/chpc-main.py"
 MatScriptPath=$HexDir"scripts/HPC_HEX.m"
 ###### USER-DEFINED INPUTS ######
@@ -48,6 +48,7 @@ python chpc-main.py $SourceDir $DataDir $ImageDir $OutDir
 
 
 # Diagnostics for development
+echo "Here are the bash ouput print statements..."
 echo $StartDir
 echo $(pwd)
 echo $SourceDir
