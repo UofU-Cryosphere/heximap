@@ -13,10 +13,15 @@
 
 ###### USER-DEFINED INPUTS ######
 # Define paths to source, data, and output directories
-SRCdir="/uufs/chpc.utah.edu/common/home/u1046484/Codebase/heximap/"
-DATdir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSLR/data/"
-OUTdir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSLR/outputs/"
-SCRIPTpath=$SRCdir/"scripts/chpc-main.py"
+StartDir=$(pwd)
+HexDir="/uufs/chpc.utah.edu/common/home/u1046484/Codebase/heximap/"
+SourceDir=$HexDir/"src/"
+ScratchDir="/scratch/general/vast/u1046484/heximap/"
+DataDir="/uufs/chpc.utah.edu/common/home/u1046484/Documents/Research/GSLR/data/"
+GeoRefPath=$DataDir/"refDEM/"
+OutDir=StartDir/"outputs/"
+PyScriptPath=$SourceDir/"scripts/chpc-main.py"
+MatFunPath = $SourceDir/"slurm/HPC_HEX.m"
 ###### USER-DEFINED INPUTS ######
 
 # Purge old modules, load required modules, and activate conda env
@@ -26,5 +31,14 @@ module use $HOME/MyModules
 module load miniconda3/latest
 conda activate heximap
 
+# Set up scratch directory with necessary contents
+mkdir -p $ScratchDir
+cp $PyScriptPath $ScratchDir
+cp $MatFunPath $ScratchDir
+cd $ScratchDir
+
 # Run Python main script
-python $SCRIPTpath $SRCdir $DATdir $OUTdir
+python $ScriptPath $SourceDir $DataDir $OutDir
+
+# Run MATLAB main script
+matlab -nodisplay -batch 'try; HPC_HEX("$SourceDir", "$ScratchDir", "$DataDir", "$IM1_name", "$IM2_name", "$GeoRefPath"); catch; end'

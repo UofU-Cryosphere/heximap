@@ -3,19 +3,21 @@ import geopandas as gpd
 from pathlib import Path
 from shapely.geometry import Polygon
 import sys
-# import matlab.engine
+
+# Define root directory
+ROOT_DIR = Path()
 
 # Get bash inputs to define src, data, and output directories
 SRC_DIR = Path(sys.argv[1])
 DATA_DIR = Path(sys.argv[2])
 OUT_DIR = Path(sys.argv[3])
 
-# Define and (if needed) create scratch processing directory
-SCRATCH_DIR = SRC_DIR.joinpath('scratch')
-SCRATCH_DIR.mkdir(parents=True, exist_ok=True)
+# Define and (if needed) create tmp processing directory
+TMP_DIR = SRC_DIR.joinpath('tmp')
+TMP_DIR.mkdir(parents=True, exist_ok=True)
 
 # Load custom modules
-sys.path.append(SRC_DIR.joinpath('src').as_posix())
+sys.path.append(SRC_DIR.as_posix())
 import pyHEX
 
 # Load hexagon metadata
@@ -55,15 +57,16 @@ ROIs = pyHEX.pairROIs(pair_glaciers)
 ROI_set = ROIs.iloc[[0,2,3,7]]
 
 # Save ROI data for tutorial images
-pyHEX.SaveROIs(ROI_set, SavePath=SCRATCH_DIR.joinpath('hexROIs.mat'))
+pyHEX.SaveROIs(ROI_set, SavePath=TMP_DIR.joinpath('hexROIs.mat'))
 
 # Save image metadata for tutorial images
 pyHEX.save_asmat(
-    hex2, pairs2.loc[pair_idx,'Indices'], exp_path=SCRATCH_DIR)
+    hex2, pairs2.loc[pair_idx,'Indices'], exp_path=TMP_DIR)
 
 
 
 
 # # Call matlab script of heximap processes
+# import matlab.engine
 # eng = matlab.engine.start_matlab()
 # eng.triarea(nargout=0)
