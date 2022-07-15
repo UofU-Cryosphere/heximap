@@ -550,9 +550,6 @@ classdef EXT_FUNC
             vSzR = fliplr(size(objMR,'Image'));
 %             vSzLs = fliplr(size(objML,'Image10'));
 %             dScale = 10;
-            iR = 1;
-            iW = 1;
-            cWindow = {};
 
             % Determine image overlap
             mOver = mH1 \ mH2 * [1 1 1; 1 vSzR(2) 1]';
@@ -562,60 +559,154 @@ classdef EXT_FUNC
             mOver(3) = 1;
             mOver(4) = vSzL(2);
             
+%             % Diagnostic figure
+%             figure
+%             imshow(objML.Image10)
+%             colormap(bone)
+%             hold on
+%             plot(mOver(:,1)/10,mOver(:,2)/10,'--','Color',[1 0.5 0])
+%             hold off
+
             % Convert Python ROIs from lon/lat to image coordinates
-            [c_idx, r_idx] = transformPointsInverse(...
-                objML.SpatialTrans, sROIs.Region1(:,1), sROIs.Region1(:,2));
-            r_idx = -r_idx; %Need to negate row values
+            cRegions = fieldnames(sROIs);
+            [c_idx, r_idx] = cellfun(@(x) transformPointsInverse(...
+                objML.SpatialTrans, ...
+                sROIs.(x)(:,1), sROIs.(x)(:,2)), ...
+                cRegions, 'UniformOutput', false);
+            r_idx = cellfun(@(x) -x, r_idx, 'UniformOutput', false); %Need to negate row values
 
-            % Diagnostic plots
-%             [c_idx, r_idx] = transformPointsInverse(objML.SpatialTrans, ...
+%             % Diagnostic plots
+%             [c_plt, r_plt] = transformPointsInverse(objML.SpatialTrans, ...
 %                 objML.CornerGCPs(:,1), objML.CornerGCPs(:,2));
-%             r_idx = -r_idx; %Need to negate row values
-            figure
-            imshow(objML.Image10)
-            hold on
-            plot(c_idx/10, r_idx/10, 'r+', 'MarkerSize',10)
-            hold off
-
-            % Still need to iterate through each ROI, clip ROIs only to
-            % region of overlap, grid the overlap region, determine which
-            % grids intersect ROIs, and ensure list of grid points is
-            % unique
-
-
-
-
+%             r_plt = -r_plt; %Need to negate row values
+%             figure
+%             imshow(objML.Image10)
+%             hold on
+%             plot(c_plt/10, r_plt/10, 'r+', 'MarkerSize',10)
+%             hold off
             
+            % Create closed polygons in image coordinates and unify
+            cPolyI = cellfun(@(x,y) polyshape(x,y), c_idx, r_idx);
+            pPoly = union(cPolyI);
+            cPoly = regions(pPoly);
 
+%             % Diagnostic plot
+%             figure
+%             imshow(objML.Image)
+%             hold on
+%             plot(cPoly)
+%             hold off
+
+            % Get vertices of merged poly boundaries
+            cX = cell(1, length(cPoly));
+            cY = cell(1, length(cPoly));
+            for i=1:length(cX)
+                [cX{i},cY{i}] = boundary(cPoly(i));
+            end
+            
+            % Convert polygons to logical masks
+            cROImasks = cellfun(@(x,y) poly2mask(x,y,vSzL(2), vSzL(1)), ...
+                cX, cY, 'UniformOutput', false);
+            
+            % Combine logical masks for full left image
+            mMask = false(vSzL(2), vSzL(1));
+            for i=1:length(cROImasks)
+                mMask = mMask | cROImasks{i};
+            end
+            
+%             vEdgeL = interp1(mOver(:,2),mOver(:,1),1:vSzL(2));
+            
             % Initialize
             iWinSzPix = 4400;
             iBuffPix = 300;
 
-            if strcmp(coverage, 'full')
+            % Divide left image region of overlap into potential processing
+            % windows
+            vWinX_L = mean(mOver(:,1)):iWinSzPix:vSzL(1);
+            vWinY_L = mOver(1,2):iWinSzPix:mOver(2,2);
 
-                % Define ROI (for left image)
-                mROI = round([...
-                    mOver(1)+iBuffPix, mOver(3)+iBuffPix; ...
-                    vSzL(1)-iBuffPix, vSzL(2)-iBuffPix]);
+            % Determine which processing windows overlap with ROI
+            cWinL = cell(1, length(vWinX_L)*length(vWinY_L));
+            iW = 1;
+            for i=1:length(vWinX_L)-1
+                for j=1:length(vWinY_L)-1
+                    win_j = mMask(vWinY_L(j):vWinY_L(j+1),...
+                        vWinX_L(i):vWinX_L(i+1));
+                    if any(win_j) == true 
+                        % Define window, include edge buffer
+                        cWinL{iW} = [vWinX_L(i) vWinY_L(j); ...
+                            vWinX_L(i+1) vWinY_L(j+1)] + ...
+                            [-iBuffPix -iBuffPix; iBuffPix iBuffPix];
 
-                % Define window vectors
-                vRoiSz = fliplr(diff(mROI))+1;
-                vX = round(linspace(mROI(1),mROI(2),round(vRoiSz(2)/iWinSzPix)+1));
-                vY = round(linspace(mROI(3),mROI(4),round(vRoiSz(1)/iWinSzPix)+1));
-
-
-
-
-
-
-
-
-
+                        % Iterate window counter
+                        iW = iW+1;
+                    end
+                end
             end
+            % Remove empty cells
+            cWinL = cWinL(~cellfun('isempty', cWinL));
             
+            cWindow = cell(1, length(cWinL));
+            for i=1:length(cWinL)
 
-            cWindow = {cM, coverage};
+                mWinL = cWinL{i};
 
+                % Make sure left image window boundaries are valid
+                mWinL(mWinL < 1) = 1;
+                mWinL(mWinL(:,1) > vSzL(1),1) = vSzL(1);
+                mWinL(mWinL(:,2) > vSzL(2),2) = vSzL(2);
+
+                % Transform window to right image
+                mWinR = mH2 \ mH1 * [mWinL [1;1]]';
+                mWinR = mWinR ./ repmat(mWinR(3,:),3,1);
+                mWinR = mWinR(1:2,:)';
+                mWinR = round(mWinR);
+
+                % Make sure right image window boundaries are valid
+                mWinR(mWinR < 1) = 1;
+                mWinR(mWinR(:,1) > vSzR(1),1) = vSzR(1);
+                mWinR(mWinR(:,2) > vSzR(2),2) = vSzR(2);
+
+                % Make both windows the same size
+                vWinSz = min([diff(mWinL);diff(mWinR)])-1;
+                vCenL = mean(mWinL);
+                vCenR = mean(mWinR);
+                mWinL = round([vCenL-vWinSz/2;vCenL+vWinSz/2]);
+                mWinR = round([vCenR-vWinSz/2;vCenR+vWinSz/2]);
+
+                % Save data in structure and store in cell array
+                sWindow = struct('left',mWinL,'right',mWinR, ...
+                    'region',i);
+                cWindow{i} = sWindow;
+            end
+
+%             % Diagnostic figures
+%             cPolyL = cellfun(@(x) polyshape(...
+%                 [x.left(1,1) x.left(1,1) x.left(2,1) x.left(2,1)], ...
+%                 [x.left(1,2) x.left(2,2) x.left(2,2) x.left(1,2)]), ...
+%                 cWindow, 'UniformOutput', false);
+%             IM_polyL = polyshape(...
+%                 [1 1 vSzL(1) vSzL(1)], [1 vSzL(2) vSzL(2) 1]);
+%             cPolyR = cellfun(@(x) polyshape(...
+%                 [x.right(1,1) x.right(1,1) x.right(2,1) x.right(2,1)], ...
+%                 [x.right(1,2) x.right(2,2) x.right(2,2) x.right(1,2)]), ...
+%                 cWindow, 'UniformOutput', false);
+%             IM_polyR = polyshape(...
+%                 [1 1 vSzR(1) vSzR(1)], [1 vSzR(2) vSzR(2) 1]);
+%             figure
+%             plot(IM_polyL)
+%             hold on
+%             for i=1:length(cPolyL)
+%                 plot(cPolyL{i})
+%             end
+%             hold off
+%             figure
+%             plot(IM_polyR)
+%             hold on
+%             for i=1:length(cPolyR)
+%                 plot(cPolyR{i})
+%             end
+%             hold off
 
         end
 
@@ -640,7 +731,7 @@ classdef EXT_FUNC
             iNumWin = numel(cWindow);
 
             % Loop through each window
-            for iW = 1:iNumWin
+            parfor iW = 1:iNumWin
 
                 try
 
@@ -736,7 +827,7 @@ classdef EXT_FUNC
             iNumROI = length(vUniqueROI);
 
             % Loop through each ROI
-            for iR = 1:iNumROI
+            parfor iR = 1:iNumROI
 
                 try
 
@@ -767,7 +858,7 @@ classdef EXT_FUNC
             end
 
             % Loop through each ROI
-            for iR = 1:iNumROI
+            parfor iR = 1:iNumROI
 
                 try
 
@@ -775,12 +866,12 @@ classdef EXT_FUNC
 %                     cReg = {num2str(iR) num2str(iNumROI)};
 
                     % Get windows belonging to current ROI
-                    [cL,cR] = extGetROI(cFileL,cFileR,vROI,vUniqueROI(iR));
+                    [cL2,cR2] = extGetROI(cFileL,cFileR,vROI,vUniqueROI(iR));
 
                     % Try bundle adjustment again for any previous inaccurate windows. This
                     % time, can use better starting guess for solver (using solutions from
                     % other more accurate windows)
-                    sA = cL{1}.Accuracy;
+                    sA = cL2{1}.Accuracy;
                     if sA.BundleAdjust > 10000
 
                         % Update command window
@@ -788,7 +879,7 @@ classdef EXT_FUNC
                             num2str(vUniqueROI(iR)) '...'])
 
                         % Redo bundle adjustment
-                        extBundleAdjust(strHexPath,cL,cR);
+                        extBundleAdjust(strHexPath,cL2,cR2);
 
                     end
 
@@ -797,9 +888,9 @@ classdef EXT_FUNC
                     warning(objExc.message)
                     warning(['An error occurred during bundle adjustment redo. ' ...
                         'Skipping region ' num2str(vUniqueROI(iR)) '...'])
-                    for iW = 1:numel(cL)
-                        cL{iW}.Error = objExc.message;
-                        cR{iW}.Error = objExc.message;
+                    for iW = 1:numel(cL2)
+                        cL2{iW}.Error = objExc.message;
+                        cR2{iW}.Error = objExc.message;
                     end
 
                 end
@@ -821,7 +912,7 @@ classdef EXT_FUNC
             iNumROI = length(vUniqueROI);
 
             % Loop through each ROI
-            for iR = 1:iNumROI
+            parfor iR = 1:iNumROI
 
                 try
 

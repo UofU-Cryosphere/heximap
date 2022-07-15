@@ -30,12 +30,12 @@ if ~isfolder(ExportPath)
     mkdir(ExportPath)
 end
 
-% Define heximap defaults (will later re-implement so that these can be
-% defined outside the function and the defaults overridden)
-strRes = '1/2'; %Desired image resolution for stereo matching
-iBlkSz = 3; %The block size (in pixels) used for matching in disparity mapping (should be odd 3-11)
+% % Define heximap defaults (will later re-implement so that these can be
+% % defined outside the function and the defaults overridden)
+% strRes = '1/2'; %Desired image resolution for stereo matching
+% iBlkSz = 3; %The block size (in pixels) used for matching in disparity mapping (should be odd 3-11)
+% verbose = false; %Should iterim data be kept after processing?
 
-verbose = false; %Should iterim data be kept after processing?
 %%%%%% USER-DEFINED INPUTS %%%%%%
 
 
