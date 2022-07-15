@@ -42,7 +42,7 @@ cd $ScratchDir
 python chpc-main.py $SourceDir $DataDir $ImageDir $OutDir
 
 # Run MATLAB main script
-#matlab -nodisplay -batch 'try; HPC_HEX.m; catch; end'
+#matlab -nodisplay -batch 'try; HPC_HEX.m; catch; end' -logfile $OutDirmatlab_stdout.log
 
 
 
