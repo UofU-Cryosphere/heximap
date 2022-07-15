@@ -1,5 +1,6 @@
 
 # Module imports
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -201,7 +202,7 @@ def SaveROIs(ROI_gdf, SavePath):
     scipy.io.savemat(SavePath, ROI_dict)
 
 # Function to save hexagon image pair metadata to matlab file
-def save_asmat(hex_gdf, pair_idx, exp_path):
+def hex_asmat(hex_gdf, pair_idx, exp_path):
     hex = hex_gdf.loc[pair_idx]
     IM1 = hex.iloc[0]
     IM1.index = IM1.index.str.replace(' ', '_')
@@ -211,3 +212,17 @@ def save_asmat(hex_gdf, pair_idx, exp_path):
         exp_path.joinpath((IM1['Entity_ID']+'_meta.mat')), IM1.to_dict())
     scipy.io.savemat(
         exp_path.joinpath((IM2['Entity_ID']+'_meta.mat')), IM2.to_dict())
+
+# Function to save heximap parameters as matlab structure for later import
+def param_asmat(
+    root, source, image, IM1_name, IM2_name, georef, 
+    OutPath=Path('tmp/sParams.mat')):
+    
+    param_dict = {
+        'strRootPath':root.absolute().as_posix(), 
+        'strSourcePath':source.absolute().as_posix(), 
+        'strImageDir':image.absolute().as_posix(), 
+        'strIM1Name':str(IM1_name), 'strIM2Name':str(IM2_name), 
+        'strGeoRefPath':georef}
+    
+    scipy.io.savemat(OutPath, param_dict)

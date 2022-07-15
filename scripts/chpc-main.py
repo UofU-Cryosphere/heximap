@@ -7,13 +7,16 @@ import sys
 # Define root directory
 ROOT_DIR = Path()
 
-# Get bash inputs to define src, data, and output directories
+# Get bash inputs to define src, data, image, and output directories
 SRC_DIR = Path(sys.argv[1])
 DATA_DIR = Path(sys.argv[2])
-OUT_DIR = Path(sys.argv[3])
+IM_DIR = Path(sys.argv[3])
+OUT_DIR = Path(sys.argv[4])
+# SRC_DIR = ROOT_DIR.absolute().parent.joinpath('src/')
+# DATA_DIR = Path('/home/durbank/Documents/Research/Glaciers/GSLR/data/')
 
 # Define and (if needed) create tmp processing directory
-TMP_DIR = SRC_DIR.joinpath('tmp')
+TMP_DIR = ROOT_DIR.absolute().joinpath('tmp')
 TMP_DIR.mkdir(parents=True, exist_ok=True)
 
 # Load custom modules
@@ -60,13 +63,11 @@ ROI_set = ROIs.iloc[[0,2,3,7]]
 pyHEX.SaveROIs(ROI_set, SavePath=TMP_DIR.joinpath('hexROIs.mat'))
 
 # Save image metadata for tutorial images
-pyHEX.save_asmat(
+pyHEX.hex_asmat(
     hex2, pairs2.loc[pair_idx,'Indices'], exp_path=TMP_DIR)
 
-
-
-
-# # Call matlab script of heximap processes
-# import matlab.engine
-# eng = matlab.engine.start_matlab()
-# eng.triarea(nargout=0)
+# Export MATLAB param file for later use
+pyHEX.param_asmat(
+    root=ROOT_DIR, source=SRC_DIR, image=IM_DIR, 
+    IM1_name=pair_i.IDs.iloc[0][0], IM2_name=pair_i.IDs.iloc[0][1], 
+    georef=DATA_DIR, OutPath=TMP_DIR.joinpath('sParams.mat'))
