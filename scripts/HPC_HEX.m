@@ -1,6 +1,8 @@
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
+now0 = tic();
+
 % Load script parameters from Python-generated file
 sParams = load("tmp/sParams.mat");
 
@@ -43,21 +45,26 @@ sInfoL2 = imfinfo(char(fullfile(sParams.strImageDir, ...
 sInfoR2 = imfinfo(char(fullfile(sParams.strImageDir, ...
     strcat(sParams.strIM2Name, "_b.tif"))));
 
+now1 = tic();
+
 % Stitch together the two image halves of each image and save to scratch
 strStitchPath = fullfile(strTmpPath, "stitched/");
 if ~isfolder(strStitchPath)
     mkdir(strStitchPath)
 end
-% objIM1 = StitchAuto(sInfoL1, sInfoR1, strStitchPath);
-% objIM2 = StitchAuto(sInfoL2, sInfoR2, strStitchPath);
-% For development purposes, skip stitching and load previously stitched
-% images
-objIM1 = matfile(fullfile(sParams.strStitchPath, ...
-    strcat(sParams.IM1_name,".mat")),...
-    'Writable',true);
-objIM2 = matfile(fullfile(sParams.strStitchPath, ...
-    strcat(sParams.IM2_name,".mat")),...
-    'Writable',true);
+objIM1 = StitchAuto(sInfoL1, sInfoR1, strStitchPath);
+objIM2 = StitchAuto(sInfoL2, sInfoR2, strStitchPath);
+% % For development purposes, skip stitching and load previously stitched
+% % images
+% objIM1 = matfile(fullfile(sParams.strStitchPath, ...
+%     strcat(sParams.IM1_name,".mat")),...
+%     'Writable',true);
+% objIM2 = matfile(fullfile(sParams.strStitchPath, ...
+%     strcat(sParams.IM2_name,".mat")),...
+%     'Writable',true);
+
+T_stitch = toc(now1);
+fprintf('Stitching time: %.0f seconds', T_stitch)
 
 % Import image metadata (generated with Python script)
 IM1_meta = load(fullfile(strTmpPath, "metadata", ...
@@ -68,10 +75,18 @@ IM2_meta = load(fullfile(strTmpPath, "metadata", ...
 % Load ROI locations from Python-generated file
 ROIs = load(fullfile(strTmpPath, "hexROIs.mat"));
 
+now2 = tic();
+
 % Extract DEM for overlap between hexagon pair
 ExtractAuto(objIM1, IM1_meta, objIM2, IM2_meta, ROIs, strTmpPath);
 % ExtractAuto(objIM1, IM1_meta, objIM2, IM2_meta, strTmpPath,...
 %     strRes, iBlkSz);
 
+T_extract = toc(now2);
+fprintf('Extraction time: %.0f seconds', T_extract)
+
 % Georeference DEMs using reference DEM
 tmp = sParams.strGeoRefPath;
+
+T_total = toc(now0);
+fprintf('Total time: %.0f seconds', T_total)

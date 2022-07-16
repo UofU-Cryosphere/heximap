@@ -63,20 +63,25 @@ cWindows = EXT_FUNC.GetRegions(cM, ROIs);
 %     'region', 1);
 % cWindow = {sWin1, sWin2, sWin3, sWin4};
 
-tic
+now0 = tic();
 % Rectify the stereo images, compute disparity maps
 EXT_FUNC.DisparityLoop(cM,strExPath,cWindows(1:4),strRes,iBlkSz);
 % EXT_FUNC.DisparityLoop(cM,strExPath,cWindows,strRes,iBlkSz);
-toc
+T_disp = toc(now0);
+fprintf('Disparity loop time: %.0f seconds', T_disp)
 
-tic
+now1 = tic();
 % Refine camera orientations using bundle adjustment
 EXT_FUNC.BundleAdjustLoop(strExPath);
-toc
 
-tic
+T_adjust = toc(now0);
+fprintf('Bundle adjustment time: %.0f seconds', T_adjust)
+
+now2 = tic();
 % Triangulate the points
 EXT_FUNC.TriangulateLoop(strExPath);
-toc
+
+T_tri = toc(now2);
+fprintf('Bundle adjustment time: %.0f seconds', T_tri)
 
 end
