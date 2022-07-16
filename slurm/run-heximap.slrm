@@ -25,6 +25,7 @@ PyScriptPath=$HexDir"scripts/chpc-main.py"
 MatScriptPath=$HexDir"scripts/HPC_HEX.m"
 ###### USER-DEFINED INPUTS ######
 
+echo "LOADING MODULES..."
 # Purge old modules, load required modules, and activate conda env
 module purge
 module load gcc/8.5.0 matlab/R2022a opencv/3.4.1-mex-nomkl mexopencv/R2022a-nomkl
@@ -38,11 +39,16 @@ cp $PyScriptPath $ScratchDir
 cp $MatScriptPath $ScratchDir
 cd $ScratchDir
 
+echo $StartDir
+echo $(pwd)
+
+echo "RUNNING PYTHON SCRIPT"
 # Run Python main script
 python chpc-main.py $SourceDir $DataDir $ImageDir $OutDir
 
+echo "RUNNING MATLAB SCRIPT"
 # Run MATLAB main script
-#matlab -nodisplay -batch 'try; HPC_HEX.m; catch; end' -logfile $OutDirmatlab_stdout.log
+matlab -nodisplay -batch 'HPC_HEX' -logfile matlab_stdout.log
 
 
 
