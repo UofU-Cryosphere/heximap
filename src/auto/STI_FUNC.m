@@ -215,7 +215,7 @@ classdef STI_FUNC
             
             % Create mat file to store images
             [~,strN,~] = fileparts(sInfoL.Filename);
-            strFile = strcat([strExpPath strN(1:end-2) '.mat']);
+            strFile = strcat(strExpPath, strN(1:end-2), '.mat');
             objM = matfile(strFile,'Writable',true);
             
             % Deterime if figure was previously created
