@@ -1,12 +1,18 @@
-function [] = extBundleAdjust(strHexPath,cL,cR,hW,cReg)
+function [] = extBundleAdjust(strHexPath,cL,cR,varargin)
 % Minimize reprojection error using nonlinear least squares solver
 
-% Update waitbar
-try
-set(get(findobj(hW,'type','axes'),'title'), 'string', ...
-    ['region ' cReg{1} ' of ' cReg{2} ': performing bundle adjustment...'])
-pause(0.1)
-catch
+% Define whether to run manual or automated based on num of arguments
+if nargin > 3
+    hW = varargin{1};
+    cReg = varargin{2};
+
+    % Update waitbar
+    try
+        set(get(findobj(hW,'type','axes'),'title'), 'string', ...
+            ['region ' cReg{1} ' of ' cReg{2} ': performing bundle adjustment...'])
+        pause(0.1)
+    catch
+    end
 end
 
 % Choose matrices for initial solver guess

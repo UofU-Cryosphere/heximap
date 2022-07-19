@@ -1,15 +1,21 @@
-function [] = extStereoRect(objL,objR,strSavePath,hW,cWin)
+function [] = extStereoRect(objL,objR,strSavePath,varargin)
 % Rectify stereo images so corresponding features line up along rows. This
 % reduces the disparity search to one dimension. To get a better
 % distribution of point matches across the images, each image is divided
 % into blocks and ORB points are detected seperately for each block.
 
-% Update waitbar
-try
-set(get(findobj(hW,'type','axes'),'title'), 'string', ...
-    ['window ' cWin{1} ' of ' cWin{2} ': computing epipolar images...'])
-pause(0.1)
-catch
+% Define whether to run manual or automated based on num of arguments
+if nargin > 3
+    hW = varargin{1};
+    cWin = varargin{2};
+
+    % Update waitbar
+    try
+        set(get(findobj(hW,'type','axes'),'title'), 'string', ...
+            ['window ' cWin{1} ' of ' cWin{2} ': computing epipolar images...'])
+        pause(0.1)
+    catch
+    end
 end
 
 % Filter the images
@@ -320,7 +326,7 @@ imagesc(objL.Image),colormap(bone(256)),hold on
 scatter(mPtsL(1,:),mPtsL(2,:),abs(vError*100),[1 0.5 0])
 title('Left Image ORB Matches')
 axis equal, axis off
-saveas(f,[strSavePath 'LeftMatches'],'fig')
+saveas(f,fullfile(strSavePath, 'LeftMatches'),'fig')
 close(f)   
 
 % Save right image ORB points
@@ -329,7 +335,7 @@ imagesc(objR.Image),colormap(bone(256)),hold on
 scatter(mPtsR(1,:),mPtsR(2,:),abs(vError*100),[1 0.5 0])
 title('Right Image ORB Matches')
 axis equal, axis off
-saveas(f,[strSavePath 'RightMatches'],'fig')
+saveas(f,fullfile(strSavePath, 'RightMatches'),'fig')
 close(f)
 
 end

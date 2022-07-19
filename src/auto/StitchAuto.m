@@ -8,7 +8,7 @@ corners = STI_FUNC.GetCorners(sInfoL, sInfoR);
 objM = STI_FUNC.Stitch(sInfoL, sInfoR, corners, export_path);
 
 % % Save lower resolution copies of the images
-% stiResize(objM, []);
+STI_FUNC.Resize(objM);
 
 % Save camera scan resolution, focal length, and estimated principal
 % point in mat file

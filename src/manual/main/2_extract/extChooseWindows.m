@@ -18,6 +18,9 @@ vSzLs = fliplr(size(objML,'Image10'));
 dScale = 10;iR = 1;iW = 1;cWindow = {};
 strRepeat = 'yes';
 
+% dScale = 1;
+% vSzLs = vSzL;
+
 % Determine image overlap
 mOver = mH1 \ mH2 * [1 1 1; 1 vSzR(2) 1]';
 mOver = mOver ./ repmat(mOver(3,:),3,1);
@@ -28,6 +31,7 @@ mOver(3) = 1; mOver(4) = vSzLs(2);
 % Show image
 f = figure;
 warning('off','images:initSize:adjustingMag');
+% imshow(adapthisteq(objML.Image)),colormap(bone(256)),hold on
 imshow(adapthisteq(objML.Image10)),colormap(bone(256)),hold on
 plot(mOver(:,1),mOver(:,2),'--','Color',[1 0.5 0])
 plot([vSzLs(1) vSzLs(1)],[1 vSzLs(2)],'--','Color',[1 0.5 0])
