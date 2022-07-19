@@ -68,20 +68,20 @@ now0 = tic();
 EXT_FUNC.DisparityLoop(cM,strExPath,cWindows(1:4),strRes,iBlkSz);
 % EXT_FUNC.DisparityLoop(cM,strExPath,cWindows,strRes,iBlkSz);
 T_disp = toc(now0);
-fprintf('Disparity loop time: %.0f seconds', T_disp)
+fprintf('Disparity loop time: %.0f seconds\n', T_disp)
 
 now1 = tic();
 % Refine camera orientations using bundle adjustment
 EXT_FUNC.BundleAdjustLoop(strExPath);
 
-T_adjust = toc(now0);
-fprintf('Bundle adjustment time: %.0f seconds', T_adjust)
+T_adjust = toc(now1);
+fprintf('Bundle adjustment time: %.0f seconds\n', T_adjust)
 
 now2 = tic();
 % Triangulate the points
 EXT_FUNC.TriangulateLoop(strExPath);
 
 T_tri = toc(now2);
-fprintf('Bundle adjustment time: %.0f seconds', T_tri)
+fprintf('Triangulation time: %.0f seconds\n', T_tri)
 
 end
