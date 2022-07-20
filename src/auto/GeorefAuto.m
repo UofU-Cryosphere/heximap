@@ -2,8 +2,11 @@
 function [] = GeorefAuto(strHexPath, strDEMrefPath, strShpPath)
 
 % Check input data for errors
-geoCheckInput(strDEMrefPath,strShpPath);
+checkInput(strDEMrefPath)
+checkInput(strShpPath)
 
 % Get mat files containing data for image windows
-[cL,cR] = GEO_FUNC.GetMatFiles(strHexPath);
+[cL,cR] = geoGetMatFiles(strHexPath);
 
+% Select window for initial georeferencing
+iWinIdx = GEO_FUNC.InitWindow(cL,cR);

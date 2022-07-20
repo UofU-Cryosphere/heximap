@@ -91,7 +91,13 @@ fprintf('Extraction time: %.0f seconds', T_extract)
 disp('Georeferencing hexagon DEM...')
 % now3 = tic()
 % Georeference DEMs using reference DEM
-tmp = sParams.strGeoRefPath;
+strHexPath = fullfile(strTmpPath, "extraction/");
+GeorefAuto(strHexPath, ...
+    fullfile('~/Documents/Research/GSLR/tutorial/npi/npi_copdem.tif'), ...
+    fullfile('/uufs/chpc.utah.edu/common/home/u1046484/Documents/', ...
+    'Research/GSLR/data/RGI-data/17_rgi60_SouthernAndes/', ...
+    '17_rgi60_SouthernAndes.shp'))
+% GeorefAuto(strHexPath, sParams.strGeoRefPath, sParams.strShpPath)
 
 % T_ref = toc(now3);
 % fprintf('Georeferencing time: %.0f seconds', T_ref)
