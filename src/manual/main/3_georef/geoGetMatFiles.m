@@ -1,10 +1,15 @@
-function [cL,cR] = geoGetMatFiles(strWinPath,hW)
+function [cL,cR] = geoGetMatFiles(strWinPath,varargin)
 % Get mat files containing image windows
 
-% Update waitbar
-try
-waitbar(2/8,hW,'checking .mat files...')
-catch
+% Define whether to run manual or automated based on num of arguments
+if nargin > 1
+    hW = varargin{1};
+
+    % Update waitbar
+    try
+        waitbar(2/8,hW,'checking .mat files...')
+    catch
+    end
 end
 
 % Get paths to mat files
