@@ -9,4 +9,4 @@ checkInput(strShpPath)
 [cL,cR] = geoGetMatFiles(strHexPath);
 
 % Select window for initial georeferencing
-iWinIdx = GEO_FUNC.InitWindow(cL,cR);
+vRankIdx = GEO_FUNC.RankWindows(cL,cR);
