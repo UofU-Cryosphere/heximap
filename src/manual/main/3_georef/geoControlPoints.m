@@ -1,14 +1,21 @@
-function [] = geoControlPoints(objL,strRef,strCP,hW)
+function [] = geoControlPoints(objL,strRef,strCP,varargin)
 % Define control points for georeferencing
 
-% Update waitbar
-try
-waitbar(4/8,hW,'defining control points for initial georeferencing...')
-catch
+% Define whether to run manual or automated based on num of arguments
+if nargin > 3
+    hW = varargin{1};
+
+    % Update waitbar
+    try
+        waitbar(4/8,hW,'defining control points for initial georeferencing...')
+    catch
+    end
 end
 
 % Get control points
-switch strCP   
+switch strCP
+    case 'full-auto'
+        [mPtsT,mPtsW] = auto(objL,strRef);
     case 'automatic'
         try
             [mPtsT,mPtsW] = auto(objL,strRef);
