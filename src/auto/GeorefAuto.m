@@ -4,6 +4,9 @@ function [] = GeorefAuto(strHexPath, strDEMrefPath, strShpPath)
 % Turn off lVis (this is only used in manual processing to visualize
 % georeferencing
 lVis = false;
+lPoly = false;
+lWin = false;
+dMaxDelZ = 200;
 
 % Check input data for errors
 checkInput(strDEMrefPath)
@@ -25,6 +28,6 @@ geoInitTrans(cL{vRankIdx(1)},strDEMrefPath,strShpPath,lVis);
 geoApplyTrans(cL,cR,vRankIdx(1));
 
 % Optimize orientation of all regions
-geoOptimize(cL,vRankIdx(1),strRef,strShpPath,lVis,lPoly,lWin,dMaxDelZ,hW);
+geoOptimize(cL,vRankIdx(1),strDEMrefPath,strShpPath,lVis,lPoly,lWin,dMaxDelZ);
 
 end
