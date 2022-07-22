@@ -39,9 +39,6 @@ cp $PyScriptPath $ScratchDir
 cp $MatScriptPath $ScratchDir
 cd $ScratchDir
 
-echo $StartDir
-echo $(pwd)
-
 echo "RUNNING PYTHON SCRIPT"
 # Run Python main script
 python chpc-main.py $SourceDir $DataDir $ImageDir $GeoDir $OutDir
