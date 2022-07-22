@@ -45,15 +45,16 @@ sInfoL2 = imfinfo(char(fullfile(sParams.strImageDir, ...
 sInfoR2 = imfinfo(char(fullfile(sParams.strImageDir, ...
     strcat(sParams.strIM2Name, "_b.tif"))));
 
-disp('Stitching Hexagon images...\n')
+fprintf('Stitching Hexagon images...\n')
 now1 = tic();
 
-% Stitch together the two image halves of each image and save to scratch
+% Create directory to store stiched images
 strStitchPath = fullfile(strTmpPath, "stitched/");
 if ~isfolder(strStitchPath)
     mkdir(strStitchPath)
 end
 
+% Stitch together the two image halves of each image and save to scratch
 % fprintf('Stitching halves for Image %s...', sParams.strIM1Name)
 % objIM1 = StitchAuto(sInfoL1, sInfoR1, strStitchPath);
 % fprintf('Stitching halves for Image %s...', sParams.strIM2Name)
@@ -67,7 +68,7 @@ objIM2 = matfile(fullfile(strStitchPath, strcat(sParams.strIM2Name,".mat")),...
     'Writable',true);
 
 T_stitch = toc(now1);
-fprintf('Total stitching time: %.0f seconds', T_stitch)
+fprintf('Total stitching time: %.0f seconds\n', T_stitch)
 
 % Import image metadata (generated with Python script)
 IM1_meta = load(fullfile(strTmpPath, "metadata", ...
@@ -78,7 +79,7 @@ IM2_meta = load(fullfile(strTmpPath, "metadata", ...
 % Load ROI locations from Python-generated file
 ROIs = load(fullfile(strTmpPath, "hexROIs.mat"));
 
-disp('Begin extraction of DEM from Hexagon imagery pair...\n')
+fprintf('Begin extraction of DEM from Hexagon imagery pair...\n')
 now2 = tic();
 % Extract DEM for overlap between hexagon pair
 ExtractAuto(objIM1, IM1_meta, objIM2, IM2_meta, ROIs, strTmpPath);
@@ -86,20 +87,42 @@ ExtractAuto(objIM1, IM1_meta, objIM2, IM2_meta, ROIs, strTmpPath);
 %     strRes, iBlkSz);
 
 T_extract = toc(now2);
-fprintf('Extraction time: %.0f seconds', T_extract)
+fprintf('Extraction time: %.0f seconds\n', T_extract)
 
-disp('Georeferencing hexagon DEM...')
-% now3 = tic()
+fprintf('Georeferencing hexagon DEM...\n')
+now3 = tic();
 % Georeference DEMs using reference DEM
 strHexPath = fullfile(strTmpPath, "extraction/");
-% GeorefAuto(strHexPath, ...
-%     fullfile('~/Documents/Research/GSLR/tutorial/npi/npi_copdem.tif'), ...
-%     fullfile('/uufs/chpc.utah.edu/common/home/u1046484/Documents/', ...
-%     'Research/GSLR/data/RGI-data/17_rgi60_SouthernAndes/'))
 GeorefAuto(strHexPath, sParams.strGeoRefPath, sParams.strShpPath)
 
-% T_ref = toc(now3);
-% fprintf('Georeferencing time: %.0f seconds', T_ref)
+T_ref = toc(now3);
+fprintf('Georeferencing time: %.0f seconds\n', T_ref)
+
+fprintf('Converting hexagon DEMs/Images to GEOTIFF...\n')
+now4 = tic();
+% Define input options for converting HEX dems to tif (mostly related to
+% DEM cleanup)
+sRastParams = struct();
+sRastParams.lClean = true;
+sRastParams.lMed = true;
+sRastParams.lDen = true;
+sRastParams.iGap = true;
+sRastParams.iSpec = 40000;
+sRastParams.iMed = 3;
+sRastParams.iDenT = 0.8;
+sRastParams.iDenN = 10;
+
+% Create directory to store final dems and images
+strFinalPath = fullfile(strTmpPath, "final/");
+if ~isfolder(strFinalPath)
+    mkdir(strFinalPath)
+end
+
+% Convert referenced hex DEM to rasterized geotiff file
+RasterAuto(strHexPath, strFinalPath, sRastParams)
+
+T_raster = toc(now4);
+fprintf('Rasterizing time: %.0f seconds\n', T_raster)
 
 T_total = toc(now0);
-fprintf('Total time: %.0f seconds', T_total)
+fprintf('Total time: %.0f seconds\n', T_total)

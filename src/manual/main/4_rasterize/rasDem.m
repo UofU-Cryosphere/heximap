@@ -1,12 +1,18 @@
 function [] = rasDem(objL,strWinPath,lClean,lMed,lDen,iGap,iSpec,iMed, ...
-    iDenT,iDenN,hW,cWin)
+    iDenT,iDenN, varargin)
 % Make raster grid DEM from georeferenced triangulated points
 
-% Update waitbar
-try
-waitbar(str2double(cWin{1})/str2double(cWin{2}),hW, ...
-    ['window ' cWin{1} ' of ' cWin{2} ': rasterizing the DEM...'])
-catch
+% Define whether to run manual or automated based on num of arguments
+if nargin > 10
+    hW = varargin{1};
+    cWin = varargin{2};
+
+    % Update waitbar
+    try
+        waitbar(str2double(cWin{1})/str2double(cWin{2}),hW, ...
+            ['window ' cWin{1} ' of ' cWin{2} ': rasterizing the DEM...'])
+    catch
+    end
 end
 
 % Read triangulated points

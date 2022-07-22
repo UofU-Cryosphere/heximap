@@ -1,10 +1,23 @@
-function [] = rasOrtho(objL,strWinPath,hW,cWin)
+function [] = rasOrtho(objL,strWinPath,varargin)
 % Make raster grid orthoimage
+
+% Define whether to run manual or automated based on num of arguments
+if nargin > 2
+    hW = varargin{1};
+    cWin = varargin{2};
+
+    % Update waitbar
+    try
+        waitbar(str2double(cWin{1})/str2double(cWin{2}),hW, ...
+            ['window ' cWin{1} ' of ' cWin{2} ': rasterizing the orthoimage...'])
+    catch
+    end
+end
 
 % Update waitbar
 try
-waitbar(str2double(cWin{1})/str2double(cWin{2}),hW, ...
-    ['window ' cWin{1} ' of ' cWin{2} ': rasterizing the orthoimage...'])
+    waitbar(str2double(cWin{1})/str2double(cWin{2}),hW, ...
+        ['window ' cWin{1} ' of ' cWin{2} ': rasterizing the orthoimage...'])
 catch
 end
 
@@ -29,7 +42,7 @@ vLat = vLatH(1):-dRes:vLatH(end);
 % Make new DEM
 [mLon,mLat] = meshgrid(vLon,vLat);
 [mLonH,mLatH] = meshgrid(vLonH,vLatH);
-mDem = double(objL.HexagonDem); 
+mDem = double(objL.HexagonDem);
 mDem(mDem < -500 | mDem > 9000) = NaN;
 mDem = interp2(mLonH,mLatH,mDem,mLon,mLat);
 clear mLonH mLatH
