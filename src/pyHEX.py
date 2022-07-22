@@ -201,7 +201,7 @@ def SaveROIs(ROI_gdf, SavePath, FileName='hexROIs.mat'):
     # Construct dictionary
     ROI_dict = dict(zip(roi_keys, ROI_gdf['Coords'].to_list()))
 
-    # Save dictionary
+    # Save dictionary as MATLAB structure
     scipy.io.savemat(SavePath.joinpath(FileName), ROI_dict)
 
 # Function to save hexagon image pair metadata to matlab file
@@ -209,29 +209,39 @@ def hex_asmat(hex_gdf, pair_idx, exp_path):
     # If necessary, create output directory
     exp_path.mkdir(parents=True, exist_ok=True)
 
+    # Subset hexagon metadata to given hex pair
     hex = hex_gdf.loc[pair_idx]
+
+    # Convert first hex image metadata labels (no spaces permitted in MATLAB)
     IM1 = hex.iloc[0]
     IM1.index = IM1.index.str.replace(' ', '_')
+
+    # Convert second hex image metadata labels
     IM2 = hex.iloc[1]
     IM2.index = IM2.index.str.replace(' ', '_')
+
+    # Save hex pair metadata as MATLAB structures
     scipy.io.savemat(
         exp_path.joinpath((IM1['Entity_ID']+'_meta.mat')), IM1.to_dict())
     scipy.io.savemat(
         exp_path.joinpath((IM2['Entity_ID']+'_meta.mat')), IM2.to_dict())
 
-# Function to save heximap parameters as matlab structure for later import
+# Function to save heximap parameters as MATLAB structure for later import
 def param_asmat(
-    root, source, image, IM1_name, IM2_name, georef, 
+    root, source, image, IM1_name, IM2_name, georef, GlacierShp, 
     OutDir=Path('tmp/'), FileName="sParams.mat"):
     
     # If necessary, create output directory
     OutDir.mkdir(parents=True, exist_ok=True)
 
+    # Create dictionary of parameters
     param_dict = {
         'strRootPath':root.absolute().as_posix(), 
         'strSourcePath':source.absolute().as_posix(), 
         'strImageDir':image.absolute().as_posix(), 
         'strIM1Name':IM1_name, 'strIM2Name':IM2_name, 
+        'strShpPath': GlacierShp.absolute().as_posix(), 
         'strGeoRefPath':georef.absolute().as_posix()}
     
+    # Save as MATLAB structure
     scipy.io.savemat(OutDir.joinpath(FileName), param_dict)
