@@ -1,10 +1,15 @@
-function [] = geoInitTrans(objL,strRef,strShpPath,lVis,hW)
+function [] = geoInitTrans(objL,strRef,strShpPath,lVis,varargin)
 % Compute transformations for initial georeferencing (using chosen window)
 
-% Update waitbar
-try
-waitbar(5/8,hW,'computing transformations for initial georeferencing...')
-catch
+if nargin > 4
+    hW = varargin{1};
+
+    % Update waitbar
+    try
+        waitbar(5/8, hW, ...
+            'computing transformations for initial georeferencing...')
+    catch
+    end
 end
 
 % Update command window

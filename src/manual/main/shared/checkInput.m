@@ -13,7 +13,8 @@ switch strExt
             error(['Raster must use the WGS 84 ' ...
                 'geographic coordinate system.'])
         end
-        if ~strcmpi(sInfo.Datum,'World Geodetic System 1984')
+        if ~contains(sInfo.Datum,'World Geodetic System 1984')
+%         if ~strcmpi(sInfo.Datum,'World Geodetic System 1984')
             error('Raster must use the World Geodetic System 1984 datum.')
         end
         if ~strcmpi(sInfo.Ellipsoid,'WGS 84')

@@ -54,17 +54,17 @@ if ~isfolder(strStitchPath)
     mkdir(strStitchPath)
 end
 
-fprintf('Stitching halves for Image %s...', sParams.strIM1Name)
-objIM1 = StitchAuto(sInfoL1, sInfoR1, strStitchPath);
-fprintf('Stitching halves for Image %s...', sParams.strIM2Name)
-objIM2 = StitchAuto(sInfoL2, sInfoR2, strStitchPath);
+% fprintf('Stitching halves for Image %s...', sParams.strIM1Name)
+% objIM1 = StitchAuto(sInfoL1, sInfoR1, strStitchPath);
+% fprintf('Stitching halves for Image %s...', sParams.strIM2Name)
+% objIM2 = StitchAuto(sInfoL2, sInfoR2, strStitchPath);
 
-% % For development purposes, skip stitching and load previously stitched
-% % images
-% objIM1 = matfile(fullfile(strStitchPath, strcat(sParams.strIM1Name,".mat")),...
-%     'Writable',true);
-% objIM2 = matfile(fullfile(strStitchPath, strcat(sParams.strIM2Name,".mat")),...
-%     'Writable',true);
+% For development purposes, skip stitching and load previously stitched
+% images
+objIM1 = matfile(fullfile(strStitchPath, strcat(sParams.strIM1Name,".mat")),...
+    'Writable',true);
+objIM2 = matfile(fullfile(strStitchPath, strcat(sParams.strIM2Name,".mat")),...
+    'Writable',true);
 
 T_stitch = toc(now1);
 fprintf('Total stitching time: %.0f seconds', T_stitch)
@@ -91,7 +91,12 @@ fprintf('Extraction time: %.0f seconds', T_extract)
 disp('Georeferencing hexagon DEM...')
 % now3 = tic()
 % Georeference DEMs using reference DEM
-tmp = sParams.strGeoRefPath;
+strHexPath = fullfile(strTmpPath, "extraction/");
+% GeorefAuto(strHexPath, ...
+%     fullfile('~/Documents/Research/GSLR/tutorial/npi/npi_copdem.tif'), ...
+%     fullfile('/uufs/chpc.utah.edu/common/home/u1046484/Documents/', ...
+%     'Research/GSLR/data/RGI-data/17_rgi60_SouthernAndes/'))
+GeorefAuto(strHexPath, sParams.strGeoRefPath, sParams.strShpPath)
 
 % T_ref = toc(now3);
 % fprintf('Georeferencing time: %.0f seconds', T_ref)
