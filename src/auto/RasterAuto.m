@@ -14,14 +14,14 @@ mkdir(strSavePath,'images')
 for iW = 1:numel(cL)
 
     try
-
+        
         % Rasterize the DEM
-        rasDem(cL{iW}, strHexPath, sRasterParams.lClean, sRasterParams.lMed,...
+        rasDem(cL{iW}, strSavePath, sRasterParams.lClean, sRasterParams.lMed,...
             sRasterParams.lDen, sRasterParams.iGap, sRasterParams.iSpec, ...
             sRasterParams.iMed, sRasterParams.iDenT, sRasterParams.iDenN);
 
         % Rasterize the orthoimage
-        rasOrtho(cL{iW}, strHexPath);
+        rasOrtho(cL{iW}, strSavePath);
 
     catch objExc
 

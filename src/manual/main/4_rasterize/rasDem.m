@@ -67,9 +67,8 @@ sR.ColumnsStartFrom = 'north';
 sR.RowsStartFrom = 'west';
 
 % Write a geotiff file
-strSaveFile = strcat([strWinPath 'dems\dem_r' ...
-    num2str(objL.RegionID) '_w' ...
-    num2str(objL.WindowID) '.tif']);
+strSaveFile = fullfile(strWinPath, 'dems', strcat(...
+    'dem_r', num2str(objL.RegionID), '_w', num2str(objL.WindowID), '.tif'));
 geotiffwrite(strSaveFile,mDem,sR,'CoordRefSysCode','EPSG:4326');
 
 % Save output
