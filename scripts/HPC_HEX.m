@@ -4,6 +4,7 @@
 now0 = tic();
 
 % Load script parameters from Python-generated file
+% sParams = load("/scratch/general/vast/u1046484/heximap/tmp/sParams.mat");
 sParams = load("tmp/sParams.mat");
 
 % Load environment settings
@@ -55,17 +56,17 @@ if ~isfolder(strStitchPath)
 end
 
 % Stitch together the two image halves of each image and save to scratch
-% fprintf('Stitching halves for Image %s...', sParams.strIM1Name)
-% objIM1 = StitchAuto(sInfoL1, sInfoR1, strStitchPath);
-% fprintf('Stitching halves for Image %s...', sParams.strIM2Name)
-% objIM2 = StitchAuto(sInfoL2, sInfoR2, strStitchPath);
+fprintf('Stitching halves for Image %s...', sParams.strIM1Name)
+objIM1 = StitchAuto(sInfoL1, sInfoR1, strStitchPath);
+fprintf('Stitching halves for Image %s...', sParams.strIM2Name)
+objIM2 = StitchAuto(sInfoL2, sInfoR2, strStitchPath);
 
-% For development purposes, skip stitching and load previously stitched
-% images
-objIM1 = matfile(fullfile(strStitchPath, strcat(sParams.strIM1Name,".mat")),...
-    'Writable',true);
-objIM2 = matfile(fullfile(strStitchPath, strcat(sParams.strIM2Name,".mat")),...
-    'Writable',true);
+% % For development purposes, skip stitching and load previously stitched
+% % images
+% objIM1 = matfile(fullfile(strStitchPath, strcat(sParams.strIM1Name,".mat")),...
+%     'Writable',true);
+% objIM2 = matfile(fullfile(strStitchPath, strcat(sParams.strIM2Name,".mat")),...
+%     'Writable',true);
 
 T_stitch = toc(now1);
 fprintf('Total stitching time: %.0f seconds\n', T_stitch)
@@ -87,7 +88,7 @@ ExtractAuto(objIM1, IM1_meta, objIM2, IM2_meta, ROIs, strTmpPath);
 %     strRes, iBlkSz);
 
 T_extract = toc(now2);
-fprintf('Extraction time: %.0f seconds\n', T_extract)
+fprintf('Total extraction time: %.0f seconds\n', T_extract)
 
 fprintf('Georeferencing hexagon DEM...\n')
 now3 = tic();
@@ -96,7 +97,7 @@ strHexPath = fullfile(strTmpPath, "extraction/");
 GeorefAuto(strHexPath, sParams.strGeoRefPath, sParams.strShpPath)
 
 T_ref = toc(now3);
-fprintf('Georeferencing time: %.0f seconds\n', T_ref)
+fprintf('Total georeferencing time: %.0f seconds\n', T_ref)
 
 fprintf('Converting hexagon DEMs/Images to GEOTIFF...\n')
 now4 = tic();
@@ -106,7 +107,7 @@ sRastParams = struct();
 sRastParams.lClean = true;
 sRastParams.lMed = true;
 sRastParams.lDen = true;
-sRastParams.iGap = true;
+sRastParams.iGap = 3600;
 sRastParams.iSpec = 40000;
 sRastParams.iMed = 3;
 sRastParams.iDenT = 0.8;
@@ -122,7 +123,7 @@ end
 RasterAuto(strHexPath, strFinalPath, sRastParams)
 
 T_raster = toc(now4);
-fprintf('Rasterizing time: %.0f seconds\n', T_raster)
+fprintf('Total rasterizing time: %.0f seconds\n', T_raster)
 
 T_total = toc(now0);
 fprintf('Total time: %.0f seconds\n', T_total)
