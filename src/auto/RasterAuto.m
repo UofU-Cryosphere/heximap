@@ -12,6 +12,7 @@ mkdir(strSavePath,'images')
 
 % Loop through each window
 for iW = 1:numel(cL)
+    fprintf('Converting Window %i of %i windows...\n', iW, numel(cL))
 
     try
         
@@ -21,8 +22,10 @@ for iW = 1:numel(cL)
             sRasterParams.iMed, sRasterParams.iDenT, sRasterParams.iDenN);
 
         % Rasterize the orthoimage
+        fprintf('Saving orthorectified hex image as geotiff...\n')
         rasOrtho(cL{iW}, strSavePath);
-
+    
+        fprintf('Conversion and writing of Window %i complete', iW)
     catch objExc
 
         warning(objExc.message)

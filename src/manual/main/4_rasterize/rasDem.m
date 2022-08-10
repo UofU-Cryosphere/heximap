@@ -46,12 +46,27 @@ sParams.connectedPixels = 0;
 sParams.radius = 0;
 
 % Interpolate to make raster DEM
+fprintf('Interpolating Hexagon to raster grid...\n')
 mDem = points2grid(mPts,vX,vY,'interp',sParams);
 
 % Clean up DEM
-mDem = rasClean(mDem,dResM,lClean,iGap,iSpec);
+fprintf('Cleaning interpolated raster...\n')
+mDemClean = rasClean(mDem,dResM,lClean,iGap,iSpec);
 
-% Median filter and mesh denoise 
+% Discard nan-filling  if it results in > 10% more nan-values or if all
+% elements are NaN
+if (sum(isnan(mDemClean),'all')/numel(mDemClean) < ...
+        1.10*sum(isnan(mDem),'all')/numel(mDem)) || ...
+        (sum(isnan(mDemClean),'all')==numel(mDemClean) && ...
+        sum(isnan(mDem),'all') < numel(mDem))
+    mDem = mDemClean;
+    clear mDemClean
+else
+    clear mDemClean
+end
+        
+% Median filter and mesh denoise
+fprintf('Smoothing and denoising raster...\n')
 mDem = rasSmooth(vX,vY,mDem,lMed,lDen,iMed,iDenT,iDenN);
 
 % Set nodata value and numeric class
@@ -67,6 +82,7 @@ sR.ColumnsStartFrom = 'north';
 sR.RowsStartFrom = 'west';
 
 % Write a geotiff file
+fprintf('Saving raster as geotiff...\n')
 strSaveFile = fullfile(strWinPath, 'dems', strcat(...
     'dem_r', num2str(objL.RegionID), '_w', num2str(objL.WindowID), '.tif'));
 geotiffwrite(strSaveFile,mDem,sR,'CoordRefSysCode','EPSG:4326');

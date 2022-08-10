@@ -14,13 +14,6 @@ if nargin > 2
     end
 end
 
-% Update waitbar
-try
-    waitbar(str2double(cWin{1})/str2double(cWin{2}),hW, ...
-        ['window ' cWin{1} ' of ' cWin{2} ': rasterizing the orthoimage...'])
-catch
-end
-
 % Get georeferencing info
 sGeo = objL.GeorefInfo;
 sT = sGeo.Initial.Triangulated2WorldTransform;
@@ -56,7 +49,7 @@ clear mLonR mLatR lHoles
 
 % Interpolate any remaining holes (where the reference DEM also had no
 % data)
-mDem = inpaint_nans(mDem);
+mDem = InpaintNaN_chunks(mDem, 2000, 0);
 
 % Make DEM points
 vSz = size(mDem);

@@ -4,7 +4,7 @@ if lMed
     
     % Interpolate data gaps
     lNaN = isnan(mDem);
-    mDem = inpaint_nans(mDem);
+    mDem = InpaintNaN_chunks(mDem, 2000, 0);
 
     % Median filter
     mDem = medfilt2(mDem,[iMed iMed],'symmetric');
