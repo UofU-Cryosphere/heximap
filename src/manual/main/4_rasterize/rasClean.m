@@ -5,7 +5,9 @@ if lClean
     % Interpolate small data gaps
     iGap = round(iGap/dResM^2);
     lNaN = isnan(mDem);
-    mDem = inpaint_nans(mDem);
+    [mDem] = InpaintNaN_chunks(mDem, 2000, 0);
+    
+    % Add back nan values for holes larger than acceptable gap
     lKeep = bwareaopen(lNaN,iGap);
     mDem(lKeep) = NaN;
 

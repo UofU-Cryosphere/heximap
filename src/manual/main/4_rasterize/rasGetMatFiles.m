@@ -1,10 +1,14 @@
-function cL = rasGetMatFiles(strWinPath,hW)
+function cL = rasGetMatFiles(strWinPath,varargin)
 % Get mat files containing image windows
 
-% Update waitbar
-try
-waitbar(0/1,hW,'checking .mat files...')
-catch
+% Retain interactive plotting when in manual mode
+if nargin > 1
+    hW = varargin{1};
+    try
+        % Update waitbar
+        waitbar(0/1,hW,'checking .mat files...')
+    catch
+    end
 end
 
 % Get paths to mat files

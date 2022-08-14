@@ -7,8 +7,13 @@ corners = STI_FUNC.GetCorners(sInfoL, sInfoR);
 % Stitch together the image halves
 objM = STI_FUNC.Stitch(sInfoL, sInfoR, corners, export_path);
 
-% % Save lower resolution copies of the images
+fprintf('Upscaling stitched Hexagon Image...\n')
+now = tic();
+% Save lower resolution copies of the images
 STI_FUNC.Resize(objM);
+
+T_ref = toc(now);
+fprintf('Upscaling time: %.0f seconds\n', T_ref)
 
 % Save camera scan resolution, focal length, and estimated principal
 % point in mat file

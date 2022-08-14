@@ -9,7 +9,8 @@ function duplicates = get_duplicates(X)
 % duplicates(i) = [];
 %duplicates = find(not(ismember(1:numel(X),i)));
 uniqueX = unique(X);
-countOfX = hist(X,uniqueX);
+[countOfX,~] = histcounts(X, uniqueX);
+% countOfX = hist(X,uniqueX);
 index = (countOfX~=1 & countOfX~=0);
 duplicates = uniqueX(index);
 end

@@ -1,11 +1,17 @@
-function [] = rasOrtho(objL,strWinPath,hW,cWin)
+function [] = rasOrtho(objL,strWinPath,varargin)
 % Make raster grid orthoimage
 
-% Update waitbar
-try
-waitbar(str2double(cWin{1})/str2double(cWin{2}),hW, ...
-    ['window ' cWin{1} ' of ' cWin{2} ': rasterizing the orthoimage...'])
-catch
+% Define whether to run manual or automated based on num of arguments
+if nargin > 2
+    hW = varargin{1};
+    cWin = varargin{2};
+
+    % Update waitbar
+    try
+        waitbar(str2double(cWin{1})/str2double(cWin{2}),hW, ...
+            ['window ' cWin{1} ' of ' cWin{2} ': rasterizing the orthoimage...'])
+    catch
+    end
 end
 
 % Get georeferencing info
@@ -29,7 +35,7 @@ vLat = vLatH(1):-dRes:vLatH(end);
 % Make new DEM
 [mLon,mLat] = meshgrid(vLon,vLat);
 [mLonH,mLatH] = meshgrid(vLonH,vLatH);
-mDem = double(objL.HexagonDem); 
+mDem = double(objL.HexagonDem);
 mDem(mDem < -500 | mDem > 9000) = NaN;
 mDem = interp2(mLonH,mLatH,mDem,mLon,mLat);
 clear mLonH mLatH
@@ -43,7 +49,7 @@ clear mLonR mLatR lHoles
 
 % Interpolate any remaining holes (where the reference DEM also had no
 % data)
-mDem = inpaint_nans(mDem);
+mDem = InpaintNaN_chunks(mDem, 2000, 0);
 
 % Make DEM points
 vSz = size(mDem);
@@ -104,8 +110,7 @@ sR.RowsStartFrom = 'west';
 objL.HexagonImageSpatialRef = sR;
 
 %Write a geotiff file
-strSaveFile = strcat([strWinPath 'images\image_r' ...
-    num2str(objL.RegionID) 'w' ...
-    num2str(objL.WindowID) '.tif']);
+strSaveFile = fullfile(strWinPath, 'images', strcat(...
+    'image_r', num2str(objL.RegionID), 'w', num2str(objL.WindowID), '.tif'));
 geotiffwrite(strSaveFile,objL.HexagonImage,objL.HexagonImageSpatialRef, ...
     'CoordRefSysCode','EPSG:4326');
